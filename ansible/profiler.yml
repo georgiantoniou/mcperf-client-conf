@@ -1,0 +1,50 @@
+---
+- name: Run remote profiler
+  hosts: memcached
+  tags: 
+  - run_profiler
+  tasks:
+  - name: Run remote profiler
+    command: sudo taskset -c 12 python3 ~/mcperf/profiler.py -i {{ ITERATION }}
+    async: 10000 
+    poll: 0
+- name: Kill remote profiler
+  hosts: memcached
+  tags: 
+  - kill_profiler
+  tasks:
+  - name: Get the PID of running process
+    ignore_errors: yes
+    shell: "ps -few | grep profiler | awk '{print $2}'"
+    register: running_processes
+  - name: Kill remote profiler       
+    ignore_errors: yes
+    shell: sudo kill {{ item }}
+    with_items: "{{ running_processes.stdout_lines }}"
+- name: Run remote socwatch
+  hosts: memcached
+  tags: 
+  - run_socwatch
+  tasks:
+  - name: Run remote socwatch
+    command: sudo /opt/intel/oneapi/vtune/2023.0.0/socwatch/x64/socwatch -s 60 -t {{ MONITOR_TIME }} -f cpu-cstate -m -r int -o {{ OUTPUT_FILE }}
+    async: 10000 
+    poll: 0 
+- name: Run remote socwatch io
+  hosts: memcached
+  tags:
+  - run_socwatch_io
+  tasks:
+  - name: Run remote socwatch io
+    command: sudo /opt/intel/oneapi/vtune/2022.3.0/bin64/vtune -collect io -duration=40  -r {{ OUTPUT_FILE }}
+    async: 10000
+    poll: 0
+- name: Run remote socwatch hotspots
+  hosts: memcached
+  tags:
+  - run_socwatch_hotspots
+  tasks:
+  - name: Run remote socwatch hotspots
+    command: sudo /opt/intel/oneapi/vtune/2022.3.0/bin64/vtune -collect hotsposts -knob sampling-mode=hw -knob enable-stack-collection=true -duration=40  -r {{ OUTPUT_FILE }}
+    async: 10000
+    poll: 0
