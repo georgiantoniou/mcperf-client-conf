@@ -45,21 +45,209 @@ typeset -g NODES
 PROJ_DIR=""
 RES_DIR=""
 RES_NODE=""
+REBOOT=0
+
+save_client_conf () {
+
+    echo "set-client-configuration FUNC:save_client_conf MSG:Save client configuration" >&2
+
+    for node in "${NODES[@]}"
+    do
+        
+        touch "client_conf_"$node
+
+        for i in "${!GRUB_SCRIPTS[@]}"
+        do  
+
+            temp=`${GRUB_SCRIPTS[$i]} get $node` 
+            echo "$temp" >> "client_conf_"$node
+
+        done
+
+    done
+
+    for node in "${NODES[@]}"
+    do
+
+        for i in "${!CONF_SCRIPTS[@]}"
+        do  
+
+            temp=`${CONF_SCRIPTS[$i]} get $node`
+            echo "$temp" >> "client_conf_"$node
+
+        done
+    
+    done    
+
+    #check if result dir exists and if not create
+    if  [[ ! `ssh ganton12@$RES_NODE "test -d $RES_DIR"` ]]; then
+
+        ssh ganton12@$RES_NODE "mkdir $RES_DIR"
+
+    fi
+    
+    for node in "${NODES[@]}"
+    do
+
+        scp "client_conf_"$node ganton12@$RES_NODE:$RES_DIR
+
+    done
+
+    ssh ganton12@$RES_NODE "echo $CONF_STRING &> $RES_DIR/client_conf"
+    ssh ganton12@$RES_NODE "echo $RES_DIR &>> $RES_DIR/client_conf"
+    ssh ganton12@$RES_NODE "echo $PROJ_DIR &>> $RES_DIR/client_conf"
+    ssh ganton12@$RES_NODE "echo $RES_NODE &>> $RES_DIR/client_conf"
+    ssh ganton12@$RES_NODE "echo $REBOOT &>> $RES_DIR/client_conf"
+}
 
 ##################################################################################
-# The following function checks the arguments. Specifically it checks whether the 
-# length of the conf_string is the correct one. It checks whether nodes are 
-# reachable. Checks whether project directory exists. Additionally it checks the 
-# arguments for each configuration seperately  
-# 
-# Arg 1:    string_configuration
-# Arg 2:    nodes
-# Arg 3:    project directory
-# Arg 4:    node,result directory 
+# The following function sets the parameters that do not require grub file. 
+#
+set_rest_conf () {
+
+    echo "set-client-configuration FUNC:set_rest_conf MSG:Set rest of configuration" >&2
+
+    for node in "${NODES[@]}"
+    do
+        for i in "${!CONF_SCRIPTS[@]}"
+        do  
+
+            ${CONF_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node 
+
+        done
+    done
+    
+}
+
+##################################################################################
+# The following function checks whether client nodes have booted.
+#
+check_nodes_on () {
+
+    echo "set-client-configuration FUNC:check_nodes_on MSG:Check nodes on!!!" >&2
+    for node in "${NODES[@]}"
+    do  
+        #Check if machine has booted
+        echo "set-client-configuration FUNC:check_nodes_on MSG:Check nodes $node" >&2
+
+        packets=`ping -c 1 $node | grep "received" | awk '{print $4}'`
+        echo "$packets"
+        while [[ $packets == "0" ]]; 
+        do
+            
+            sleep 30
+            packets=`ping -c 1 $node | grep "received" | awk '{print $4}'`
+            echo "$packets"
+
+        done
+
+    done
+
+}
+
+##################################################################################
+# The following function set all the grub files to the current configuration. It 
+# also executes update-grub2. It uses global variables not arguments.
+#
+reboot_nodes () {
+
+    echo "set-client-configuration FUNC:reboot_nodes MSG:Rebooting nodes!!!" >&2
+    for node in "${NODES[@]}"
+    do
+        echo "set-client-configuration FUNC:reboot_nodes MSG:Rebooting node $node" >&2
+        ssh ganton12@$node "sudo reboot"
+
+    done
+    
+}
+
+##################################################################################
+# The following function set all the grub files to the current configuration. It 
+# also executes update-grub2. It uses global variables not arguments.
+#
+update_grub () {
+
+    for node in "${NODES[@]}"
+    do
+        for i in "${!GRUB_SCRIPTS[@]}"
+        do  
+
+            ${GRUB_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node 
+
+        done
+    done
+    
+}
+
+##################################################################################
+# The following function reset all the grub files parameters to the initial state. 
+# It uses global variables not arguments.
+#
+reset_grub () {
+
+    for node in "${NODES[@]}"
+    do
+        for i in "${!GRUB_SCRIPTS[@]}"
+        do  
+
+            ${GRUB_SCRIPTS[$i]} reset $node 
+
+        done
+    done
+    
+}
+
+##################################################################################
+# The following function checks whether the machine needs to be rebooted for the 
+# current configuration. The function uses global variables, there is no need for
+# arguments.
+#
 check_reboot () {
 
-    
+    REBOOT=0
+    for node in "${NODES[@]}"
+    do
+        for i in "${!GRUB_SCRIPTS[@]}"
+        do  
 
+            ${GRUB_SCRIPTS[$i]} check_reset $node ${CONF_VAL_ARR[$i]}
+            retun_val=$?
+            if [[ $retun_val -eq 1 ]]; then
+                REBOOT=1
+            fi
+
+        done
+    done
+    
+}
+
+##################################################################################
+# This function prints the global variables.
+# 
+print_global_var () {
+
+    for key in "${!GRUB_SCRIPTS[@]}"; do
+        echo "$key: ${GRUB_SCRIPTS[$key]}"
+    done
+    
+    for key in "${!CONF_SCRIPTS[@]}"; do
+        echo "$key: ${CONF_SCRIPTS[$key]}"
+    done
+    
+    for key in "${!CONF_VAL_ARR[@]}"; do
+        echo "$key: ${CONF_VAL_ARR[$key]}"
+    done
+
+    for key in "${!NODES[@]}"; do
+        echo "$key: ${NODES[$key]}"
+    done
+
+    echo "$NUM_CONFS"
+    echo "$CONF_STRING"
+    echo "$PROJ_DIR"
+    echo "$RES_DIR"
+    echo "$RES_NODE"
+    echo "$REBOOT"
 
 }
 
@@ -149,28 +337,6 @@ parse_args () {
 
     RES_DIR=`echo $4 | awk -F"," '{print $2}'`
     RES_NODE=`echo $4 | awk -F"," '{print $1}'`
-
-    # for key in "${!GRUB_SCRIPTS[@]}"; do
-    #     echo "$key: ${GRUB_SCRIPTS[$key]}"
-    # done
-    
-    # for key in "${!CONF_SCRIPTS[@]}"; do
-    #     echo "$key: ${CONF_SCRIPTS[$key]}"
-    # done
-    
-    # for key in "${!CONF_VAL_ARR[@]}"; do
-    #     echo "$key: ${CONF_VAL_ARR[$key]}"
-    # done
-
-    # for key in "${!NODES[@]}"; do
-    #     echo "$key: ${NODES[$key]}"
-    # done
-
-    # echo "$NUM_CONFS"
-    # echo "$CONF_STRING"
-    # echo "$PROJ_DIR"
-    # echo "$RES_DIR"
-    # echo "$RES_NODE"
         
 }
 
@@ -192,32 +358,38 @@ main () {
     # check if machine needs to reboot
     check_reboot 
 
-    #reset all the configurations from grub file
+    # if reboot equals 1 then reset and update grub file and restart machines 
+    if [[ $REBOOT -eq 1 ]]; then
+        #reset all the configurations from grub file
+        reset_grub
 
+        #update grub files for all nodes
+        update_grub
 
-    #update grub files for all nodes
+        #reboot machines
+        reboot_nodes
 
+        sleep 180
 
-    #reboot machines
+        #check if machines booted
+        check_nodes_on
 
-
-    #check if machines booted
-
+    fi
 
     #set rest of machine configuration
-
+    set_rest_conf
 
     # save client configuration and timestamp on result node
+    save_client_conf
+     
+    for node in "${NODES[@]}"
+    do
 
+        sudo rm "client_conf_"$node 
 
+    done
 
-
-
-
-
-    # First reset the grub file for all nodes
-
-
+    exit 1
 }
 
 "$@"

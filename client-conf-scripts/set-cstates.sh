@@ -33,13 +33,31 @@
 # Arg1: Node
 # Arg2: Val
 check_reset () {
+
+    if [[ -z $1 || -z $2 ]]; then
+        echo "set-cstates FUNC:check_reset MSG:Invalid argument list length: " >&2
+        echo "" >&2
+        echo "set-cstates FUNC:check_reset MSG:Usage: $(basename $0) check_reset [node] [configuration_value]" >&2
+        echo "" >&2
+        echo "set-cstates FUNC:check_reset MSG:Example: $(basename $0) check_reset node0 0" >&2
+        exit 1
+    fi
     
-    if [[ $cstate == "0" ]]; then
-        flagstoadd=$flagstoadd"intel_idle.max_cstate=0 idle=poll"
-    elif [[ $cstate == "1" ]]; then
-        flagstoadd=$flagstoadd"intel_idle.max_cstate=1"
-    elif [[ $cstate == "2" ]]; then
-        flagstoadd=$flagstoadd"intel_idle.max_cstate=2"
+    if [[ $2 == 0 && `ssh ganton12@$1 "cat /proc/cmdline | grep \"intel_idle.max_cstate=0 idle=poll\" | wc -l"` == 1 ]]; then
+        echo "set-cstates FUNC:check_reset MSG:No need to reboot $1" >&2
+        exit 0
+    elif [[ $2 == 1 && `ssh ganton12@$1 "cat /proc/cmdline | grep \"intel_idle.max_cstate=1\" | wc -l"` == 1 ]]; then
+        echo "set-cstates FUNC:check_reset MSG:No need to reboot $1" >&2
+        exit 0
+    elif [[ $2 == 2 && `ssh ganton12@$1 "cat /proc/cmdline | grep \"intel_idle.max_cstate=2\" | wc -l"` == 1 ]]; then
+        echo "set-cstates FUNC:check_reset MSG:No need to reboot $1" >&2
+        exit 0
+    elif [[ $2 == 3 && `ssh ganton12@$1 "cat /proc/cmdline | grep \"intel_idle.max_cstate\" | wc -l"` == 0 ]]; then
+        echo "set-cstates FUNC:check_reset MSG:No need to reboot $1" >&2
+        exit 0
+    else
+        echo "set-cstates FUNC:check_reset MSG:Need to reboot $1" >&2
+        exit 1
     fi
 
 }
@@ -62,7 +80,7 @@ reset () {
 
     ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=\".*\) intel_idle.max_cstate=[^[:space:]]*\(.*\"\)/\1\2/' /etc/default/grub"
     ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=\".*\) idle=[^[:space:]]*\(.*\"\)/\1\2/' /etc/default/grub"
-
+    echo "set-cstates FUNC:reset MSG:$host reset" >&2
 }
 
 ##################################################################################
@@ -96,6 +114,30 @@ set () {
     ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=\".*\)\"/\1 $flagstoadd\"/' /etc/default/grub"
     echo "set-cstates FUNC:set MSG: Node-$host Flag-$flagstoadd"
 
+    ssh ganton12@$host "sudo update-grub2"
+    echo "set-cstates FUNC:set MSG: Node-$host update-grub2"
+
+    exit 0
+
+}
+
+##################################################################################
+# Get configuration of the machine.
+# 
+# Arg 1:    node
+get () {
+
+    if [[ -z $1 ]]; then
+        echo "set-cstates FUNC:get MSG:Invalid argument list length: " >&2
+        echo "" >&2
+        echo "set-cstates FUNC:get MSG:Usage: $(basename $0) get [node]" >&2
+        echo "" >&2
+        echo "set-cstates FUNC:get MSG:Example: $(basename $0) get node0" >&2
+        exit 1
+    fi
+
+    ssh ganton12@$1 "sudo cat /proc/cmdline"
+    
     exit 0
 
 }
