@@ -1,22 +1,22 @@
 #!/bin/bash
 
 ####################################################################################################
-# This script is used to enable/disable c-states from the grub file. It has 4 functions
+# This script is used to enable/disable c-states from the grub file. It has 5 functions
 #   1) check_args:  Check args it checks the format of the input parameter. set-cstate.sh currently
 #                   recognizes the following inputs
-#                   -> 0: only C0 (intel_indle.max_cstate=0 idle=poll) 
-#                   -> 1: C0/C1 (intel_indle.max_cstate=1)
-#                   -> 2: C0/C1/C1E (intel_indle.max_cstate=2)
-#                   -> 3: C0/C1/C1E/C6 (remove intel_indle.max_cstate from grub file if exists)
+#                   -> 0: only C0 (intel_idle.max_cstate=0 idle=poll) 
+#                   -> 1: C0/C1 (intel_idle.max_cstate=1)
+#                   -> 2: C0/C1/C1E (intel_idle.max_cstate=2)
+#                   -> 3: C0/C1/C1E/C6 (remove intel_idle.max_cstate from grub file if exists)
 #                   It takes as an argument the following:
 #                   -> Arg1: Configuration Value
 # 
-#   2) set_conf:    Changes the grub file based on the configuration parameter. It takes as an arg
+#   2) set:    Changes the grub file based on the configuration parameter. It takes as an arg
 #                   the following:
 #                   -> Arg1: Configuration Value 
 #                   -> Arg2: Node to change configuration
 #
-#   3) reset_conf:  Reset the initial c-state configuration of the grub file which is the
+#   3) reset:  Reset the initial c-state configuration of the grub file which is the
 #                   configuration wih the value 3.
 #                   -> Arg1: Node to change configuration
 #
@@ -24,6 +24,9 @@
 #                   Specifically, whether /proc/cmdline contains c-state configuration   
 #                   -> Arg1: Node 
 #                   -> Arg2: Configuration Value  
+#
+#   5) get:         Return the c-state configuration of a node. Returns /proc/cmdline.
+#                   -> Arg1: Node
 #
 #####################################################################################################
 
