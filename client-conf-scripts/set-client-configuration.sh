@@ -59,7 +59,11 @@ save_client_conf () {
         for i in "${!GRUB_SCRIPTS[@]}"
         do  
 
-            temp=`${GRUB_SCRIPTS[$i]} get $node` 
+            temp=`${GRUB_SCRIPTS[$i]} get $node`
+            return_val=$?
+            if [[ $return_val -eq 1 ]]; then
+                exit 1
+            fi
             echo "$temp" >> "client_conf_"$node
 
         done
@@ -73,6 +77,10 @@ save_client_conf () {
         do  
 
             temp=`${CONF_SCRIPTS[$i]} get $node`
+            return_val=$?
+            if [[ $return_val -eq 1 ]]; then
+                exit 1
+            fi
             echo "$temp" >> "client_conf_"$node
 
         done
@@ -112,7 +120,11 @@ set_rest_conf () {
         for i in "${!CONF_SCRIPTS[@]}"
         do  
 
-            ${CONF_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node 
+            ${CONF_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node
+            return_val=$?
+            if [[ $return_val -eq 1 ]]; then
+                exit 1
+            fi 
 
         done
     done
@@ -173,6 +185,10 @@ update_grub () {
         do  
 
             ${GRUB_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node 
+            return_val=$?
+            if [[ $return_val -eq 1 ]]; then
+                exit 1
+            fi
 
         done
     done
@@ -191,7 +207,11 @@ reset_grub () {
         do  
 
             ${GRUB_SCRIPTS[$i]} reset $node 
-
+            return_val=$?
+            if [[ $return_val -eq 1 ]]; then
+                exit 1
+            fi
+            
         done
     done
     
@@ -211,8 +231,8 @@ check_reboot () {
         do  
 
             ${GRUB_SCRIPTS[$i]} check_reset $node ${CONF_VAL_ARR[$i]}
-            retun_val=$?
-            if [[ $retun_val -eq 1 ]]; then
+            return_val=$?
+            if [[ $return_val -eq 1 ]]; then
                 REBOOT=1
             fi
 
@@ -317,9 +337,9 @@ parse_args () {
     do  
 
         ${GRUB_SCRIPTS[$i]} check_args ${CONF_VAL_ARR[$i]}
-        retun_val=$?
-        if [[ $retun_val -eq 1 ]]; then
-            exit;
+        return_val=$?
+        if [[ $return_val -eq 1 ]]; then
+            exit 1
         fi
 
     done
@@ -328,9 +348,9 @@ parse_args () {
     do  
 
         ${CONF_SCRIPTS[$i]} check_args ${CONF_VAL_ARR[$i]}
-        retun_val=$?
-        if [[ $retun_val -eq 1 ]]; then
-            exit;
+        return_val=$?
+        if [[ $return_val -eq 1 ]]; then
+            exit 1
         fi
 
     done
@@ -389,7 +409,7 @@ main () {
 
     done
 
-    exit 1
+    exit 0
 }
 
 "$@"
