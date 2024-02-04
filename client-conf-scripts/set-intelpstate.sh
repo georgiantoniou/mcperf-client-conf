@@ -17,7 +17,7 @@
 #                   -> Arg2: Node to change configuration
 #
 #   3) reset_conf:  Reset the initial intel_pstate configuration of the grub file which is the
-#                   configuration wih the value 1.
+#                   configuration with the value 1.
 #                   -> Arg1: Node to change configuration
 #
 #   4) check_reset: Check whether we need to reset the configuration and reboot the machine. 
@@ -76,7 +76,7 @@ reset () {
     fi
 
     ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=\".*\) intel_pstate=[^[:space:]]*\(.*\"\)/\1\2/' /etc/default/grub"
-    echo "set-cstates FUNC:reset MSG:$host reset" >&2
+    echo "set-intelpstate FUNC:reset MSG:$host reset" >&2
 }
 
 ##################################################################################
