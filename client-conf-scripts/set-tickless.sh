@@ -76,6 +76,8 @@ reset () {
     fi
 
     ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=\".*\) nohz=[^[:space:]]*\(.*\"\)/\1\2/' /etc/default/grub"
+    #ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=".*\) nohz=on\(.*"\)/\1\2/' /etc/default/grub"
+
     echo "set-tickless FUNC:reset MSG:$host reset" >&2
 }
 
@@ -99,17 +101,19 @@ set () {
     host=$2
     flagstoadd=""
 
+    reset $2
+
     if [[ $tickless == "1" ]]; then
         flagstoadd=$flagstoadd"nohz=on"
 
         ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=\".*\)\"/\1 $flagstoadd\"/' /etc/default/grub"
         echo "set-tickless FUNC:set MSG: Node-$host Flag-$flagstoadd"
 
-        ssh ganton12@$host "sudo update-grub2"
-        echo "set-tickless FUNC:set MSG: Node-$host update-grub2"
-    
     fi
 
+    ssh ganton12@$host "sudo update-grub2"
+    echo "set-tickless FUNC:set MSG: Node-$host update-grub2"
+    
     exit 0
 
 }
