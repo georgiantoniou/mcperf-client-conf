@@ -99,16 +99,18 @@ set () {
     host=$2
     flagstoadd=""
 
+    reset $2
+
     if [[ $pstate == "0" ]]; then
         flagstoadd=$flagstoadd"intel_pstate=disable"
 
         ssh ganton12@$host "sudo sed -i 's/\(^GRUB_CMDLINE_LINUX=\".*\)\"/\1 $flagstoadd\"/' /etc/default/grub"
         echo "set-intelpstate FUNC:set MSG: Node-$host Flag-$flagstoadd"
-
-        ssh ganton12@$host "sudo update-grub2"
-        echo "set-intelpstate FUNC:set MSG: Node-$host update-grub2"
     
     fi
+
+    ssh ganton12@$host "sudo update-grub2"
+    echo "set-intelpstate FUNC:set MSG: Node-$host update-grub2"
 
     exit 0
 

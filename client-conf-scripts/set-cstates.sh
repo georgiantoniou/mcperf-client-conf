@@ -106,6 +106,8 @@ set () {
     host=$2
     flagstoadd=""
 
+    reset $2
+
     if [[ $cstate == "0" ]]; then
         flagstoadd=$flagstoadd"intel_idle.max_cstate=0 idle=poll"
     elif [[ $cstate == "1" ]]; then
