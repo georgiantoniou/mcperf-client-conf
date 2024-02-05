@@ -20,7 +20,7 @@
 #                   configuration with the value 0.
 #                   -> Arg1: Node to change configuration
 #
-#   4) check_reset: No need to implement this because smt can be configured without reboot 
+#   4) check_reset: No need to implement this because uncore can be configured without reboot 
 #
 #   5) get:         Return the uncore frequency configuration of a node. Returns sudo rdmsr 0x620.
 #                   -> Arg1: Node
@@ -84,12 +84,12 @@ set () {
     uncore=$1
     host=$2
     
-    if [[ $uncore == "1" ]]; then
+    if [[ $uncore == 1 ]]; then
         
         ssh ganton12@$host "sudo wrmsr 0x620 0x1414"
         echo "set-uncore FUNC:set MSG: Node-$host uncore fixed"
     
-    elif [[ $smt == "0" ]]; then  
+    elif [[ $uncore == 0 ]]; then  
     
         ssh ganton12@$host "sudo wrmsr 0x620 0xc14"
         echo "set-uncore FUNC:set MSG: Node-$host uncore dynamic"
@@ -120,7 +120,6 @@ get () {
     exit 0
 
 }
-
 
 ##################################################################################
 # Check arg configuratio value. Valid choices (0,1)

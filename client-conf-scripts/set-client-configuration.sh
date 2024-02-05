@@ -26,8 +26,11 @@
 #       -> Frequency Governor:
 #           -> 0: powersave
 #           -> 1: performance
-#           -> 3: userspace 2.2GHz
-#       i.e: 0000000: cstates-disabled/intel-p-states-enabled/tickless-on/smt-on/turbo-on/uncore-freq-fixed/freq-governor-powersave/ 
+#           -> 2: userspace 2.2GHz
+#           -> 3: ondemand
+#       i.e: 0000000: cstates-disabled/intel-p-states-off/tickless-off/smt-off/freq-governor-powersave/uncore-freq-dynamic/turbo-off/
+#       i.e: 3111301: this is the default configuration for skylake pcs client
+#                     cstates-enabled/intel-p-states-on/tickless-on/smt-on/freq-gov-ondemand/uncore-dynamic/turbo-on/ 
 #   2) nodes: hostname to configure seperated by comma 
 #   3) PWD: Project Working Directory
 #   4) Node,RD: node that saves the results and 
@@ -35,7 +38,7 @@
 
 # Scripts for every parameter the script configures
 typeset -Ag GRUB_SCRIPTS=([0]="./set-cstates.sh" [1]="./set-intelpstate.sh" [2]="./set-tickless.sh")
-typeset -Ag CONF_SCRIPTS=([3]="./set-smt.sh" [4]="./set-turbo.sh" [5]="./set-uncore.sh" [6]="./set-frequencygovernor.sh")
+typeset -Ag CONF_SCRIPTS=([3]="./set-smt.sh" [4]="./set-frequencygovernor.sh" [5]="./set-uncore.sh" [6]="./set-turbo.sh")
 NUM_CONFS=7
 
 # global variable for the current configuration
@@ -120,7 +123,7 @@ set_rest_conf () {
         for i in "${!CONF_SCRIPTS[@]}"
         do  
 
-            ${CONF_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node
+            ${CONF_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node $PROJ_DIR
             return_val=$?
             if [[ $return_val -eq 1 ]]; then
                 exit 1
