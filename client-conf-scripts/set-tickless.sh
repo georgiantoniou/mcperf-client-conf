@@ -133,7 +133,8 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "echo "***TICKLESS***: `cat /proc/cmdline`""
+    temp=`ssh ganton12@$1 "cat /proc/cmdline"`
+    echo "***TICKLESS***: $temp"
     
     exit 0
 

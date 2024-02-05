@@ -49,7 +49,7 @@ build () {
   build_memcached
   build_mcperf
   pushd ~
-  tar -czf mcperf.tgz mcperf
+  tar -czf mcperf-client-conf.tgz mcperf-client-conf
   popd
  }	
 

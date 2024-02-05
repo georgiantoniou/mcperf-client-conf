@@ -16,7 +16,7 @@ import common
 
 
 log = logging.getLogger(__name__)
-
+turbostat_monitor = False
 
 def exec_command(cmd):
     logging.info(cmd)
@@ -149,8 +149,8 @@ def wait_for_remote_node(node):
 
 def configure_memcached_node(conf):
     node = memcached_node()
-    print('ssh -n {} "cd ~/mcperf; sudo python3 configure.py -v --turbo={} --kernelconfig={} -v"'.format(node, conf['turbo'], conf['kernelconfig']))
-    rc = os.system('ssh -n {} "cd ~/mcperf; sudo python3 configure.py -v --turbo={} --kernelconfig={} -v"'.format(node, conf['turbo'], conf['kernelconfig']))
+    print('ssh -n {} "cd ~/mcperf-client-conf; sudo python3 configure.py -v --turbo={} --kernelconfig={} -v"'.format(node, conf['turbo'], conf['kernelconfig']))
+    rc = os.system('ssh -n {} "cd ~/mcperf-client-conf; sudo python3 configure.py -v --turbo={} --kernelconfig={} -v"'.format(node, conf['turbo'], conf['kernelconfig']))
     exit_status = rc >> 8 
     if exit_status == 2:
         logging.info('Rebooting remote host {}...'.format(node))
@@ -161,12 +161,12 @@ def configure_memcached_node(conf):
             logging.info('Waiting for remote host {}...'.format(node))
             time.sleep(30)
             pass
-        os.system('ssh -n {} "cd ~/mcperf; sudo python3 configure.py -v --turbo={} --kernelconfig={} -v"'.format(node, conf['turbo'], conf['kernelconfig']))
+        os.system('ssh -n {} "cd ~/mcperf-client-conf; sudo python3 configure.py -v --turbo={} --kernelconfig={} -v"'.format(node, conf['turbo'], conf['kernelconfig']))
         if conf['ht'] == False:
         	os.system('ssh -n {} "echo "forceoff" | sudo tee /sys/devices/system/cpu/smt/control"'.format(node))
         os.system('ssh -n {} "sudo cpupower frequency-set -g performance"'.format(node))
         if conf['turbo'] == False:
-        	os.system('ssh -n {} "~/mcperf/turbo-boost.sh disable"'.format(node))
+        	os.system('ssh -n {} "~/mcperf-client-conf/turbo-boost.sh disable"'.format(node))
 
 
 def agents_list():
@@ -184,6 +184,9 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     results_dir_path = os.path.join(root_results_dir, results_dir_name)
     memcached_results_dir_path = os.path.join(results_dir_path, 'memcached')
    
+    # For turbostat
+    turbostat_results_dir_path = os.path.join(results_dir_path, 'memcachedserverturbostat')
+
     # cleanup any processes left by a previous run
     kill_profiler(conf)
     kill_remote(conf)
@@ -191,6 +194,10 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     # prepare profiler, memcached, and mcperf agents
     run_remote(conf)
     run_profiler(conf,idx)
+    
+    #wait profiler objects to initialize
+    time.sleep(10)
+
     exec_command("./memcache-perf/mcperf -s node1 --loadonly -r {} "
         "--iadist={} --keysize={} --valuesize={}"
         .format(conf.mcperf_records, conf.mcperf_iadist, conf.mcperf_keysize, conf.mcperf_valuesize))
@@ -213,8 +220,7 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
         print(memcached_results_dir_path)
         os.mkdir(memcached_results_dir_path) 
 
-
-    cmd=['/users/ganton12/mcperf/scripts/memcached-proc-time.sh']
+    cmd=['/users/ganton12/mcperf-client-conf/scripts/memcached-proc-time.sh']
     result = subprocess.run(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out = result.stdout.decode('utf-8').splitlines()
     memcachedstats_results_path_name = os.path.join(results_dir_path, 'memcachedstatswarmup')
@@ -222,6 +228,10 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     for i in out:
     	memcached_stats_file.write(str(i) + "\n")
     memcached_stats_file.close()
+
+    ##Start Turbostat Measurements
+    if turbostat_monitor:
+        exec_command("~/mcperf-client-conf/scripts/turbostat_residency.sh main 13 10 ganton12 temp node1")
 
     # do the measured run
     exec_command("python3 ./profiler.py -n node1 start")
@@ -237,10 +247,10 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     exec_command("python3 ./profiler.py -n node1 stop")
 	
    #check if socwatch is still processing
-   # active_socwatch=exec_command("/users/ganton12/mcperf/scripts/check-socwatch-status.sh node1")
+   # active_socwatch=exec_command("/users/ganton12/mcperf-client-conf/scripts/check-socwatch-status.sh node1")
    # while (int(active_socwatch[0]) > 2):
    #    time.sleep(30)
-   #    active_socwatch=exec_command("/users/ganton12/mcperf/scripts/check-socwatch-status.sh node1")
+   #    active_socwatch=exec_command("/users/ganton12/mcperf-client-conf/scripts/check-socwatch-status.sh node1")
 
     exec_command("python3 ./profiler.py -n node1 report -d {}".format(memcached_results_dir_path))
 
@@ -251,7 +261,7 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
 
     
     # write memcached statistics
-    cmd=['/users/ganton12/mcperf/scripts/memcached-proc-time.sh']
+    cmd=['/users/ganton12/mcperf-client-conf/scripts/memcached-proc-time.sh']
     result = subprocess.run(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out = result.stdout.decode('utf-8').splitlines()
     memcachedstats_results_path_name = os.path.join(results_dir_path, 'memcachedstatsrun')
@@ -260,6 +270,14 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     	memcached_stats_file.write(str(i) + "\n")
     memcached_stats_file.close()
     
+    if turbostat_monitor:
+        #wait turbostat to finish gathering data
+        time.sleep(10)
+        out_temp=exec_command("~/mcperf-client-conf/scripts/turbostat_residency.sh report_measurements temp ganton12 node1 &> {}".format(turbostat_results_dir_path))
+        with open(turbostat_results_dir_path, 'w') as fo:
+            for l in out_temp:
+                fo.write(l+'\n')
+
     #move socwatch statistics to extra space because space at working directory is extremely limited
     #os.system('ssh -n node1 "sudo mkdir /myextraspace/local/data/{}; sudo mv ~/{}* /myextraspace/local/data/{}"'.format(results_dir_name,results_dir_name,results_dir_name))
  
@@ -283,9 +301,9 @@ def run_multiple_experiments_with_varying_freq(root_results_dir, batch_name, sys
             run_single_experiment(root_results_dir, name_prefix, instance_conf, iter)
 
 def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_conf, iter):
-    configure_memcached_node(system_conf)
+    ## configure_memcached_node(system_conf)
     #exit()
-    time.sleep(500)
+    ## time.sleep(120)
     #exit()
     name_prefix = "turbo={}-kernelconfig={}-hyperthreading={}-".format(system_conf['turbo'], system_conf['kernelconfig'],system_conf['ht'])
     #request_qps = [10000, 50000, 100000, 200000, 300000, 400000, 500000, 1000000, 2000000]
@@ -293,7 +311,7 @@ def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_co
     #request_qps = [4000, 10000, 20000, 50000, 100000, 200000, 300000, 400000, 500000]
     #request_qps = [500000, 400000, 300000, 200000, 100000, 50000, 20000, 10000, 4000]
     root_results_dir = os.path.join(root_results_dir, batch_name)
-    set_uncore_freq(system_conf, 2000)
+    ## set_uncore_freq(system_conf, 2000)
     #for freq in [2100]:
     #    set_core_freq(system_conf, freq)
     for qps in request_qps:
@@ -306,7 +324,7 @@ def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_co
         iters_cycle=math.ceil(batch_conf.perf_counters/4.0)+1
         for it in range(iters_cycle*(iter),iters_cycle*(iter+1)):
             run_single_experiment(root_results_dir, name_prefix, instance_conf, it)
-            time.sleep(120)
+            time.sleep(60)
 
 def main(argv):
     system_confs = [

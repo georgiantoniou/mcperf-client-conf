@@ -115,7 +115,8 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "echo "***UNCORE***: `sudo rdmsr 0x620`""
+    temp=`ssh ganton12@$1 "sudo rdmsr 0x620"`
+    echo "***UNCORE***: $temp"
 
     exit 0
 

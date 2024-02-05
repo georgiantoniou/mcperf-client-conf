@@ -117,7 +117,10 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "echo "***NO_TURBO***: `cat /sys/devices/system/cpu/intel_pstate/no_turbo`""
+    temp=`ssh ganton12@$1 "cat /sys/devices/system/cpu/intel_pstate/no_turbo"`
+    echo "***NO_TURBO***: $temp"
+    temp=`ssh ganton12@$1 "i=0;while [[ i -le 10 ]]; do cat /proc/cpuinfo | grep MHz | awk '{print $4}' | sort -n | tail -1; ((i=i+1)); done"`
+    echo "***TURBO***: $temp"
     
     exit 0
 

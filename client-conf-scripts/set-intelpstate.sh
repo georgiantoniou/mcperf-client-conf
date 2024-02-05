@@ -131,7 +131,8 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "echo "***INTEL-PSTATE***: `cat /proc/cmdline`""
+    temp=`ssh ganton12@$1 "cat /proc/cmdline"`
+    echo "***INTEL-PSTATE***: $temp"
     
     exit 0
 

@@ -141,7 +141,9 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "echo "***CSTATES***: `cat /proc/cmdline`""
+    temp=`ssh ganton12@$1 "cat /proc/cmdline"`
+    echo "***CSTATES***: $temp"
+    
     exit 0
 
 }

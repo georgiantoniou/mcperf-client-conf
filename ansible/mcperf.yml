@@ -14,11 +14,11 @@
   - run_memcached
   tasks:
   - name: Run memcached server
-    command: taskset -c 0 ~/mcperf/memcached/memcached -t {{ WORKER_THREADS }} -m {{ MEMORY_LIMIT_MB }} -c 32768
+    command: taskset -c 0 ~/mcperf-client-conf/memcached/memcached -t {{ WORKER_THREADS }} -m {{ MEMORY_LIMIT_MB }} -c 32768
     async: 10000 
     poll: 0
   - name: Pin memcached worker threads 
-    command: ~/mcperf/memcached-pt.py {{ WORKER_THREADS }}
+    command: ~/mcperf-client-conf/memcached-pt.py {{ WORKER_THREADS }}
     when: PIN_THREADS is defined and PIN_THREADS|bool == true
 
 - name: Kill agents
@@ -36,7 +36,7 @@
   - run_agents
   tasks:
   - name: Run agent
-    shell: ~/mcperf/memcache-perf/mcperf -T 40 -A
+    shell: ~/mcperf-client-conf/memcache-perf/mcperf -T 40 -A
     async: 10000 
     poll: 0  
 
