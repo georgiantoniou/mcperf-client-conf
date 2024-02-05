@@ -26,8 +26,11 @@
 #       -> Frequency Governor:
 #           -> 0: powersave
 #           -> 1: performance
-#           -> 3: userspace 2.2GHz
-#       i.e: 0000000: cstates-disabled/intel-p-states-enabled/tickless-on/smt-on/turbo-on/uncore-freq-fixed/freq-governor-powersave/ 
+#           -> 2: userspace 2.2GHz
+#           -> 3: ondemand
+#       i.e: 0000000: cstates-disabled/intel-p-states-off/tickless-off/smt-off/freq-governor-powersave/uncore-freq-dynamic/turbo-off/
+#       i.e: 3111301: this is the default configuration for skylake pcs client
+#                     cstates-enabled/intel-p-states-on/tickless-on/smt-on/freq-gov-ondemand/uncore-dynamic/turbo-on/ 
 #   2) nodes: hostname to configure seperated by comma 
 #   3) PWD: Project Working Directory
 #   4) Node,RD: node that saves the results and 

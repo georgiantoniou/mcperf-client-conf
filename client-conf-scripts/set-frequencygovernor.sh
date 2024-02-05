@@ -9,7 +9,9 @@
 #                   -> 1: performance (sudo cpupower frequency-set -g performance)
 #                   -> 2: userspace (sudo cpupower frequency-set -g userspace;
 #                         sudo cpupower frequency-set -f 2200MHz)
-#                         Option 2 cannot be used with intel_pstate
+#                   -> 3: ondemand
+#                         Option 2,3 cannot be used with intel_pstate
+#
 #                   It takes as an argument the following:
 #                   -> Arg1: Configuration Value
 # 
@@ -113,6 +115,16 @@ set () {
             ssh ganton12@$host "sudo cpupower frequency-set -g userspace; sudo cpupower frequency-set -f 2200MHz"
             echo "set-frequencygovernor FUNC:set MSG: Node-$host frequency-governor userspace, 2.2GHz"
         fi
+    elif [[ $freqgov == 3 ]]; then
+
+        if [[ `ssh ganton12@$host "sudo cpupower frequency-info | grep intel_pstate | wc -l"` == 1 ]]; then
+            echo "set-frequencygovernor FUNC:set MSG: Node-$host frequency-governor ondemand, \
+            cannot be used with intel_pstate driver!!!"
+            exit 1
+        else
+            ssh ganton12@$host "sudo cpupower frequency-set -g ondemand;"
+            echo "set-frequencygovernor FUNC:set MSG: Node-$host frequency-governor ondemand"
+        fi
     fi
 
     exit 0
@@ -141,7 +153,7 @@ get () {
 }
 
 ##################################################################################
-# Check arg configuratio value. Valid choices (0,1,2)
+# Check arg configuratio value. Valid choices (0,1,2,3)
 # 
 # Arg 1:    configuration value
 check_args () {
@@ -155,12 +167,12 @@ check_args () {
         exit 1
     fi
 
-    if [[ $1 -ne 0 && $1 -ne 1 && $1 -ne 2 ]]; then
+    if [[ $1 -ne 0 && $1 -ne 1 && $1 -ne 2 && $1 -ne 3 ]]; then
         echo "set-frequencygovernor FUNC:check_args MSG:Invalid configuration value: $1 " >&2
         echo "" >&2
         echo "set-frequencygovernor FUNC:check_args MSG:Usage: $(basename $0) check_args [configuration_value]" >&2
         echo "" >&2
-        echo "set-frequencygovernor FUNC:check_args MSG:Example: $(basename $0) check_args [0,1,2]" >&2
+        echo "set-frequencygovernor FUNC:check_args MSG:Example: $(basename $0) check_args [0,1,2,3]" >&2
         exit 1
     else
         echo "set-frequencygovernor FUNC:check_args MSG:Arg test conf value: PASS " >&2
