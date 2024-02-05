@@ -11,12 +11,12 @@
 #                   It takes as an argument the following:
 #                   -> Arg1: Configuration Value
 # 
-#   2) set_conf:    Changes the grub file based on the configuration parameter. It takes as an arg
+#   2) set_conf:    Changes the configuration based on the configuration parameter. It takes as an arg
 #                   the following:
 #                   -> Arg1: Configuration Value 
 #                   -> Arg2: Node to change configuration
 #
-#   3) reset_conf:  Reset the initial smt configuration of the grub file which is the
+#   3) reset_conf:  Reset the initial smt configuration which is the
 #                   configuration with the value 1.
 #                   -> Arg1: Node to change configuration
 #
