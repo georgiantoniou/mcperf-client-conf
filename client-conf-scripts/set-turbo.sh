@@ -117,7 +117,7 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "cat /sys/devices/system/cpu/intel_pstate/no_turbo"
+    ssh ganton12@$1 "echo "***NO_TURBO***: `cat /sys/devices/system/cpu/intel_pstate/no_turbo`""
     
     exit 0
 

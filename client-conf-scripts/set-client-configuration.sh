@@ -17,19 +17,19 @@
 #       -> SMT:
 #           -> 1: 2 logical threads per physical core
 #           -> 0: 1 thread per core
-#       -> Turbo:
-#           -> 1: frquencies higher from the nominal
-#           -> 0: frequencies nominal and lower
-#       -> Uncore Frequency:
-#           -> 1: fixed uncore frequency to 2 GHz
-#           -> 0: dynamic uncore frequency to 1.2 GHz
 #       -> Frequency Governor:
 #           -> 0: powersave
 #           -> 1: performance
 #           -> 2: userspace 2.2GHz
 #           -> 3: ondemand
+#       -> Uncore Frequency:
+#           -> 1: fixed uncore frequency to 2 GHz
+#           -> 0: dynamic uncore frequency to 1.2 GHz
+#       -> Turbo:
+#           -> 1: frquencies higher from the nominal
+#           -> 0: frequencies nominal and lower
 #       i.e: 0000000: cstates-disabled/intel-p-states-off/tickless-off/smt-off/freq-governor-powersave/uncore-freq-dynamic/turbo-off/
-#       i.e: 3101301: this is the default configuration for skylake pcs client
+#       i.e: 3101001: this is the default configuration for skylake pcs client
 #                     cstates-enabled/intel-p-states-on/tickless-on/smt-on/freq-gov-ondemand/uncore-dynamic/turbo-on/ 
 #   2) nodes: hostname to configure seperated by comma 
 #   3) PWD: Project Working Directory

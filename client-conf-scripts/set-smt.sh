@@ -116,8 +116,10 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "sudo cat /sys/devices/system/cpu/smt/control; cat /proc/cpuinfo | grep MHz | wc -l"
-    
+    ssh ganton12@$1 "echo "***SMT_CONTROL***: `sudo cat /sys/devices/system/cpu/smt/control`""
+    ssh ganton12@$1 "echo "***SMT_THREADS***: `cat /proc/cpuinfo | grep MHz | wc -l`""
+
+
     exit 0
 
 }

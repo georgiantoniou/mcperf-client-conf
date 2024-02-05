@@ -141,8 +141,7 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "sudo cat /proc/cmdline"
-    
+    ssh ganton12@$1 "echo "***CSTATES***: `cat /proc/cmdline`""
     exit 0
 
 }
