@@ -29,7 +29,7 @@
 #           -> 2: userspace 2.2GHz
 #           -> 3: ondemand
 #       i.e: 0000000: cstates-disabled/intel-p-states-off/tickless-off/smt-off/freq-governor-powersave/uncore-freq-dynamic/turbo-off/
-#       i.e: 3111301: this is the default configuration for skylake pcs client
+#       i.e: 3101301: this is the default configuration for skylake pcs client
 #                     cstates-enabled/intel-p-states-on/tickless-on/smt-on/freq-gov-ondemand/uncore-dynamic/turbo-on/ 
 #   2) nodes: hostname to configure seperated by comma 
 #   3) PWD: Project Working Directory
