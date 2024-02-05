@@ -146,7 +146,8 @@ get () {
         exit 1
     fi
 
-    ssh ganton12@$1 "echo "***FREQUENCY-GOVERNOR***: `sudo cpupower frequency-info`""
+    temp=`ssh ganton12@$1 "sudo cpupower frequency-info"`
+    echo "***FREQUENCY-GOVERNOR***: $temp"
 
     exit 0
 
