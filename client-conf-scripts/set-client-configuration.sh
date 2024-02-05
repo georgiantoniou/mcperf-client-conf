@@ -35,7 +35,7 @@
 
 # Scripts for every parameter the script configures
 typeset -Ag GRUB_SCRIPTS=([0]="./set-cstates.sh" [1]="./set-intelpstate.sh" [2]="./set-tickless.sh")
-typeset -Ag CONF_SCRIPTS=([3]="./set-smt.sh" [4]="./set-turbo.sh" [5]="./set-uncore.sh" [6]="./set-frequencygovernor.sh")
+typeset -Ag CONF_SCRIPTS=([3]="./set-smt.sh" [4]="./set-frequencygovernor.sh" [5]="./set-uncore.sh" [6]="./set-turbo.sh")
 NUM_CONFS=7
 
 # global variable for the current configuration
@@ -120,7 +120,7 @@ set_rest_conf () {
         for i in "${!CONF_SCRIPTS[@]}"
         do  
 
-            ${CONF_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node
+            ${CONF_SCRIPTS[$i]} set ${CONF_VAL_ARR[$i]} $node $PROJ_DIR
             return_val=$?
             if [[ $return_val -eq 1 ]]; then
                 exit 1
