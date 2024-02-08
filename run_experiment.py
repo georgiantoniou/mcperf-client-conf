@@ -324,7 +324,7 @@ def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_co
         iters_cycle=math.ceil(batch_conf.perf_counters/4.0)+1
         for it in range(iters_cycle*(iter),iters_cycle*(iter+1)):
             run_single_experiment(root_results_dir, name_prefix, instance_conf, it)
-            time.sleep(60)
+            time.sleep(20)
 
 def main(argv):
     system_confs = [
@@ -373,7 +373,7 @@ def main(argv):
     if len(argv) < 1:
         raise Exception("Experiment name is missing")
     batch_name = argv[0]
-    for iter in range(0, 5):
+    for iter in range(5, 10):
         for system_conf in system_confs:
             run_multiple_experiments('/users/ganton12/data', batch_name, system_conf, batch_conf, iter)
 

@@ -10,6 +10,6 @@
 #    register: mcperf_folder    
   - name: Install mcperf if not exists
     unarchive: 
-      src: ~/mcperf.tgz 
+      src: ~/mcperf-client-conf.tgz 
       dest: ~/
 #    when: mcperf_folder.stat.exists == false
