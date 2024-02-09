@@ -5,6 +5,7 @@ import statistics
 import csv 
 import sys
 
+#Need to Check confidence interval theory
 
 qps_list = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
 z=1.96 # from taming performance variability paper
@@ -12,7 +13,7 @@ z=1.96 # from taming performance variability paper
 def confidence_interval_mean (metric_measurements):
     temp_list  = metric_measurements
     temp_list.sort()
-    
+
 
 
 def coefficient_of_variation(metric_measurements):
