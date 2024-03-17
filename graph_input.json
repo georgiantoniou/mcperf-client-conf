@@ -1,0 +1,454 @@
+{
+    "graphs": [
+
+        {
+            "title": "",
+            "y-axis-title": "Average Response Time(us)",
+            "y-axis-2nd-title": "99th Tail Latency(us)",
+            "x-axis-title": "Request Rate (QPS)",
+            "label": "True", 
+            "output-filename": "memcached-1M-uniq-validation-time",
+
+            "subgraphs":[
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_average_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_average_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "avg",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "Average",
+                    "type": "line",
+                    "colour": "orange"
+                },
+                {
+                    
+                    "x-elements": {
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y-elements": {
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+                    
+                    "x2-elements":{
+                        "data":"/users/ganton12/data/overall_99th_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y2-elements":{
+                        "data":"/users/ganton12/data/overall_99th_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "99th",
+                        "stats": "avg"
+                    },
+
+                    "label": "99th",
+                    "type": "line",
+                    "colour": "blue"
+                }
+            ]
+
+        },
+
+        {
+            "title": "",
+            "y-axis-title": "Core C-State(%)",
+            "y-axis-2nd-title": "",
+            "x-axis-title": "Request Rate (KQPS)",
+            "label": "True", 
+            "output-filename": "memcached-1M-uniq-validation-residency",
+
+            "subgraphs":[
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_res_merged.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps,qps,qps,qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_res_merged.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "C0-res,C1-res,C1E-res,C6-res",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "C0,C1,C1E,C6",
+                    "type": "stacked-bar"
+                }
+            ]
+
+        },
+        {
+            "title": "",
+            "y-axis-title": "C-State Transitions",
+            "y-axis-2nd-title": "",
+            "x-axis-title": "Request Rate (QPS)",
+            "label": "True", 
+            "output-filename": "memcached-1M-uniq-validation-transitions",
+
+            "subgraphs":[
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_tr_merged.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps,qps,qps,qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_tr_merged.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "C0-tr,C1-tr,C1E-tr,C6-tr",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "C0,C1,C1E,C6",
+                    "type": "stacked-bar"
+                }
+            ]
+
+        },
+        {
+            "title": "",
+            "y-axis-title": "Power Consumption(W)",
+            "y-axis-2nd-title": "",
+            "x-axis-title": "Request Rate (QPS)",
+            "label": "True", 
+            "output-filename": "memcached-1M-uniq-validation-power",
+
+            "subgraphs":[
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_package_0.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_package_0.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "package-0",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "package-0",
+                    "type": "bar",
+                    "offset": "-20000"
+                },
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_package_1.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_package_1.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "package-1",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "package-1",
+                    "type": "bar",
+                    "offset": "-10000"
+                },
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_dram_0.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_dram_0.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "dram-0",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "dram-0",
+                    "type": "bar",
+                    "offset": "0"
+                },
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_dram_1.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_dram_1.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "dram-1",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "dram-1",
+                    "type": "bar",
+                    "offset": "10000"
+                }
+            ]
+
+        },
+        {
+            "title": "",
+            "y-axis-title": "Throughput queries/sec",
+            "y-axis-2nd-title": "",
+            "x-axis-title": "Request Rate (QPS)",
+            "label": "False", 
+            "output-filename": "memcached-1M-uniq-validation-queries",
+
+            "subgraphs":[
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_throughput_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_throughput_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "throughput",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "",
+                    "type": "bar",
+                    "offset": "0"
+                },
+                {
+                    
+                    "x-elements": {
+                        "data":"/users/ganton12/data/overall_throughput_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+                    },
+
+                    "y-elements": {
+                        "data":"/users/ganton12/data/overall_throughput_time.csv",
+                        "exp-name": "mcperf_noreuse_version_cstates_enabled",
+                        "conf-name": "turbo=False-kernelconfig=baseline-hyperthreading=False",
+                        "metric": "qps",
+                        "stats": "avg"
+
+                    },
+                    
+                    "x2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "y2-elements":{
+                        "data":"",
+                        "exp-name": "",
+                        "conf-name": "",
+                        "metric": "",
+                        "stats": ""
+                    },
+
+                    "label": "",
+                    "type": "line",
+                    "colour": "orange"
+                }
+            ]
+
+        }
+
+    ]
+}
