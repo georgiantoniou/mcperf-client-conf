@@ -209,10 +209,28 @@ class PerfEventProfiling(EventProfiling):
         super().__init__(sampling_period, sampling_length)
         self.perf_path = self.find_perf_path()
         logging.info('Perf found at {}'.format(self.perf_path)) 
-        self.events = self.get_perf_power_events()
+        # get microarchitectural events 
+        self.events = PerfEventProfiling.get_microarchitectural_events()
+        
+        # self.events = self.get_perf_power_events()
+        #self.events = ['LLC-load-misses']
+        # pgrep memcached
+        # self.pid = memcached
         self.timeseries = {}
         for e in self.events:
             self.timeseries[e] = []
+
+        #get pid of memcached    
+        cmd = ['pgrep', 'memcached']
+        result = subprocess.run(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = result.stdout.decode('utf-8').splitlines() + result.stderr.decode('utf-8').splitlines()
+        self.pid=out[0]
+
+    @staticmethod
+    def get_microarchitectural_events():
+        events = []
+        events.append('LLC-load-misses')
+        return events
 
     def find_perf_path(self):
         kernel_uname = os.popen('uname -a').read().strip()
@@ -233,8 +251,10 @@ class PerfEventProfiling(EventProfiling):
         return events
 
     def sample(self, timestamp):
+        #LLC-load-misses
+
         events_str = ','.join(self.events)
-        cmd = ['sudo', self.perf_path, 'stat', '-a', '-e', events_str, 'sleep', str(self.sampling_length)]
+        cmd = ['sudo', self.perf_path, 'stat', '-e', events_str, '-p', self.pid, 'sleep', str(self.sampling_length)]
         result = subprocess.run(cmd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         out = result.stdout.decode('utf-8').splitlines() + result.stderr.decode('utf-8').splitlines()
         for e in self.events:
