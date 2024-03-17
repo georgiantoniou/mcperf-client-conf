@@ -12,6 +12,54 @@ import re
 qps_list = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
 z=1.96 # from taming performance variability paper
 n=10
+def print_residency_merged(stats_dir, overall_raw_measurements, overall_statistics, metric, filename):
+    header = ["exp_name","configuration","qps", "metric", "C0", "C1", "C1E", "C6"]
+      
+    filename = os.path.join(stats_dir, filename)
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(header)
+
+        for exp_name in overall_raw_measurements:
+            for conf_list in overall_raw_measurements[exp_name]:
+                for id,conf in enumerate(list(conf_list.keys())):
+                    for qps in qps_list:
+                        row = []
+                        row.append(exp_name)
+                        row.append(conf)
+                        row.append(qps)
+                        row.append(metric)
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C0-res']["avg"])
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C1-res']["avg"])
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C1E-res']["avg"])
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C6-res']["avg"])
+                        writer.writerow(row)
+
+def print_transition_merged(stats_dir, overall_raw_measurements, overall_statistics, metric, filename):
+    
+    header = ["exp_name","configuration","qps", "metric", "C0", "C1", "C1E", "C6"]
+
+    filename = os.path.join(stats_dir, filename)
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(header)
+
+        for exp_name in overall_raw_measurements:
+            for conf_list in overall_raw_measurements[exp_name]:
+                for id,conf in enumerate(list(conf_list.keys())):
+                    for qps in qps_list:
+                        row = []
+                        row.append(exp_name)
+                        row.append(conf)
+                        row.append(qps)
+                        row.append(metric)
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C0-tr']["avg"])
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C1-tr']["avg"])
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C1E-tr']["avg"])
+                        row.append(overall_statistics[exp_name][id][conf][qps]['C6-tr']["avg"])
+                        writer.writerow(row)
 
 def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, metric, filename):
 
@@ -96,14 +144,20 @@ def calculate_stats_single_instance(instance_stats, instance_raw_measurements):
     for qps in instance_raw_measurements[list(instance_raw_measurements.keys())[0]]:
         instance_stats[qps] = {}
         for metric in instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps]:
-            instance_stats[qps][metric] = {}
-            #calculate statistics            
-            instance_stats[qps][metric]['avg'] = average(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-            instance_stats[qps][metric]['median'] = median(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-            instance_stats[qps][metric]['stdev'] = standard_deviation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-            instance_stats[qps][metric]['cv'] = coefficient_of_variation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-            instance_stats[qps][metric]['ci'] = {}
-            instance_stats[qps][metric]['ci']['min'], instance_stats[qps][metric]['ci']['max'] = confidence_interval_mean(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+            
+            if metric != "residency": 
+                instance_stats[qps][metric] = {}
+                #calculate statistics    
+                instance_stats[qps][metric]['avg'] = average(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                instance_stats[qps][metric]['median'] = median(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                instance_stats[qps][metric]['stdev'] = standard_deviation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                if instance_stats[qps][metric]['median'] > 0:
+                    instance_stats[qps][metric]['cv'] = coefficient_of_variation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                else:
+                    instance_stats[qps][metric]['cv'] = 0
+                instance_stats[qps][metric]['ci'] = {}
+                instance_stats[qps][metric]['ci']['min'], instance_stats[qps][metric]['ci']['max'] = confidence_interval_mean(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+            
 
 def calculate_stats_multiple_instances(exp_name,overall_raw_measurements):
 
@@ -115,6 +169,190 @@ def calculate_stats_multiple_instances(exp_name,overall_raw_measurements):
         calculate_stats_single_instance(instances_stats[list(instance.keys())[0]], overall_raw_measurements[exp_name][ind])
     
     return instances_stats
+
+def derive_datatype(datastr):
+    try:
+        return type(ast.literal_eval(datastr))
+    except:
+        return type("")
+
+def read_timeseries(filepath):
+    header = None
+    timeseries = None
+    with open(filepath, 'r') as f:
+        header = f.readline().strip()
+        timeseries = []
+        data = f.readline().strip().split(',')
+        datatype = derive_datatype(data[1])
+        f.seek(0)
+        for l in f.readlines()[1:]:
+            data = l.strip().split(',')
+            timestamp = int(data[0])
+            value = datatype(data[1])
+            timeseries.append((timestamp, value))
+    return (header, timeseries)            
+
+def add_metric_to_dict(stats_dict, metric_name, metric_value):
+    head = metric_name.split('.')[0]
+    tail = metric_name.split('.')[1:]
+    if tail:
+        stats_dict = stats_dict.setdefault(head, {})
+        add_metric_to_dict(stats_dict, '.'.join(tail), metric_value)
+    else:
+        stats_dict[head] = metric_value
+
+def cpu_state_usage(data, cpu_id):
+    cpu_str = "CPU{}".format(cpu_id)
+    state_names = ['POLL', 'C1', 'C1E', 'C6']
+    state_time_perc = []
+    total_state_time = 0
+    time_us = 0
+    state_usage_vec = []
+    for state_name in state_names:
+        if state_name in data[cpu_str]:
+            (ts_start, val_start) = data[cpu_str][state_name]['usage'][0]
+            (ts_end, val_end) = data[cpu_str][state_name]['usage'][-1]
+            state_usage = int(val_end) - int(val_start)
+            state_usage_vec.append(state_usage)
+    return state_usage_vec
+
+def avg_state_usage(stats, cpu_id_list):
+    total_state_usage = [0]*4
+    cpu_count = 0
+    for cpud_id in cpu_id_list:
+        cpu_count += 1
+        total_state_usage = [a + b for a, b in zip(total_state_usage, cpu_state_usage(stats, cpud_id))]
+    avg_state_usage = [a/b for a, b in zip(total_state_usage, [cpu_count]*len(total_state_usage))]
+    return avg_state_usage
+
+def cpu_state_time_perc(data, cpu_id):
+    cpu_str = "CPU{}".format(cpu_id)
+    state_names = ['POLL', 'C1', 'C1E', 'C6']
+    state_time_perc = []
+    total_state_time = 0
+    time_us = 0
+    # determine time window of measurements
+    for state_name in state_names:
+        if state_name in data[cpu_str]:
+            (ts_start, val_start) = data[cpu_str][state_name]['time'][0]
+            (ts_end, val_end) = data[cpu_str][state_name]['time'][-1]
+            time_us = max(time_us, (ts_end - ts_start) * 1000000.0)
+            total_state_time += int(val_end) - int(val_start)    
+    time_us = max(time_us, total_state_time)
+    # FIXME: time duration is currently hardcoded at 120s (120000000us)
+    extra_c6_time_us = time_us - 120000000
+    # calculate percentage
+    for state_name in state_names:
+        if state_name == 'C6':
+            extra = extra_c6_time_us
+        else:
+            extra = 0
+        if state_name in data[cpu_str]:
+            (ts_start, val_start) = data[cpu_str][state_name]['time'][0]
+            (ts_end, val_end) = data[cpu_str][state_name]['time'][-1]
+            state_time_perc.append(((int(val_end)-int(val_start)-extra)/time_us)*100)
+    # calculate C0 as the remaining time 
+    state_time_perc[0] = 100 - sum(state_time_perc[1:4])
+    state_names[0] = 'C0' 
+    return state_time_perc
+
+def avg_state_time_perc(stats, cpu_id_list):
+    for stat in stats:
+        total_state_time_perc = [0]*4
+        cpu_count = 0
+        for cpud_id in cpu_id_list:
+            cpu_count += 1
+            total_state_time_perc = [a + b for a, b in zip(total_state_time_perc, cpu_state_time_perc(stats, cpud_id))]
+        avg_state_time_perc = [a/b for a, b in zip(total_state_time_perc, [cpu_count]*len(total_state_time_perc))]
+    return avg_state_time_perc
+
+def calculate_cstate_stats(instances_raw_measurements, inst_name, qps):
+    # determine used C-states
+    state_names = ['C0']
+    check_state_names = ['C1', 'C1E', 'C6']
+    for state_name in check_state_names:
+        if state_name in instances_raw_measurements[inst_name][qps]['residency'][0]['CPU0']:
+            state_names.append(state_name)
+    
+    time_perc_list = []
+    for stat in instances_raw_measurements[inst_name][qps]['residency']:
+        time_perc_list.append(avg_state_time_perc(stat, range(0, 10)))
+   
+    instances_raw_measurements[inst_name][qps]['C0-res'] = []
+    instances_raw_measurements[inst_name][qps]['C1-res'] = []
+    instances_raw_measurements[inst_name][qps]['C1E-res'] = []
+    instances_raw_measurements[inst_name][qps]['C6-res'] = []
+    metrics=['C0-res','C1-res','C1E-res','C6-res']
+    
+    for time_perc in time_perc_list:
+        for i, res in enumerate(time_perc):
+            instances_raw_measurements[inst_name][qps][metrics[i]].append(res)   
+    
+    ## RESIDENCY DONE CALCULATE TRANSITIONS
+     # determine used C-states
+    state_names = ['POLL']
+    check_state_names = ['C1', 'C1E', 'C6']
+    for state_name in check_state_names:
+        if state_name in instances_raw_measurements[inst_name][qps]['residency'][0]['CPU0']:
+            state_names.append(state_name)
+    
+    usage_list = []
+    for stat in instances_raw_measurements[inst_name][qps]['residency']:
+        usage_list.append(avg_state_usage(stat, range(0, 10)))
+    
+    instances_raw_measurements[inst_name][qps]['C0-tr'] = []
+    instances_raw_measurements[inst_name][qps]['C1-tr'] = []
+    instances_raw_measurements[inst_name][qps]['C1E-tr'] = []
+    instances_raw_measurements[inst_name][qps]['C6-tr'] = []
+    metrics=['C0-tr','C1-tr','C1E-tr','C6-tr']
+    
+    for usage_el in usage_list:
+        for i, res in enumerate(usage_el):
+            instances_raw_measurements[inst_name][qps][metrics[i]].append(res)
+    return 
+
+def parse_server_time(server_stats_dir, qps):
+
+    warmup_file = os.path.join(server_stats_dir, 'memcachedstatswarmup')
+    run_file = os.path.join(server_stats_dir, 'memcachedstatsrun')
+    warmup_user = 0
+    warmup_sys = 0
+    run_user = 0
+    run_sys = 0
+
+    with open(warmup_file, 'r') as file:
+        for line in file:
+            if "rusage_user" in line:
+                warmup_user = line.split(" ")[2]
+            if "rusage_system" in line:
+                warmup_sys = line.split(" ")[2]
+    
+    with open(run_file, 'r') as file:
+        for line in file:
+            if "rusage_user" in line:
+                run_user = line.split(" ")[2]
+            if "rusage_system" in line:
+                run_sys = line.split(" ")[2]
+
+    all_server_time = ((float(run_sys) - float(warmup_sys)) + (float(run_user) - float(warmup_user))) * 1000000 / 120 / int(qps)
+    user_server_time = (float(run_user) - float(warmup_user)) * 1000000 / 120 / int(qps)
+    sys_server_time = (float(run_sys) - float(warmup_sys)) * 1000000 / 120 / int(qps)
+
+    return all_server_time, user_server_time, sys_server_time
+
+def parse_cstate_stats(stats_dir):
+    stats = {}
+    prog = re.compile('(.*)\.(.*)\.(.*)')
+    for f in os.listdir(stats_dir):
+        m = prog.match(f)
+        if m:
+            stats_file = os.path.join(stats_dir, f)
+            cpu_id = m.group(1)
+            state_name = m.group(2)
+            metric_name = m.group(3)
+            (metric_name, timeseries) = read_timeseries(stats_file)
+            add_metric_to_dict(stats, metric_name, timeseries)
+    return stats
 
 def parse_power_rapl(power_dir, filename):
 
@@ -160,7 +398,7 @@ def parse_client_throughput(client_stats_file):
                 return (float(l.split()[3]))
 
 
-def parse_single_instance_stats(stats,stats_dir):
+def parse_single_instance_stats(stats,stats_dir, qps):
     
     if "throughput" not in stats:
         stats['throughput'] = []
@@ -170,6 +408,10 @@ def parse_single_instance_stats(stats,stats_dir):
         stats['package-1'] = []
         stats['dram-0'] = []
         stats['dram-1'] = []
+        stats['residency'] = []
+        stats['server-avg-all'] = []
+        stats['server-avg-user'] = []
+        stats['server-avg-sys'] = []
     
     client_stats_file = os.path.join(stats_dir, 'mcperf')
     stats['throughput'].append(parse_client_throughput(client_stats_file))
@@ -184,6 +426,15 @@ def parse_single_instance_stats(stats,stats_dir):
     stats['package-1'].append(parse_power_rapl(power_dir, "package-1"))
     stats['dram-0'].append(parse_power_rapl(power_dir, "dram-0"))
     stats['dram-1'].append(parse_power_rapl(power_dir, "dram-1"))
+
+    residency_dir = os.path.join(stats_dir, 'memcached')
+    stats['residency'].append(parse_cstate_stats(residency_dir))
+
+    server_stats_dir = stats_dir
+    all_time, user_time, sys_time = parse_server_time(server_stats_dir, qps)
+    stats['server-avg-all'].append(all_time)
+    stats['server-avg-user'].append(user_time)
+    stats['server-avg-sys'].append(sys_time)
 
 def parse_multiple_instances_stats(exp_dir, pattern='.*'):
     
@@ -212,9 +463,14 @@ def parse_multiple_instances_stats(exp_dir, pattern='.*'):
             instances_raw_measurements[instance_name] = {}
         if qps not in instances_raw_measurements[instance_name]:
             instances_raw_measurements[instance_name][qps] = {}
-
-        parse_single_instance_stats(instances_raw_measurements[instance_name][qps],instance_dir)
+       
+        parse_single_instance_stats(instances_raw_measurements[instance_name][qps],instance_dir, qps)
         
+    # calculate statistics for residency in order to find the average per CPU etc....
+    for inst_name in instances_raw_measurements:
+        for qps in instances_raw_measurements[inst_name]:
+            calculate_cstate_stats(instances_raw_measurements, inst_name, qps)
+
     return instances_raw_measurements
 
 def parse_multiple_exp_stats(stats_dir, pattern='.*'):
@@ -222,7 +478,6 @@ def parse_multiple_exp_stats(stats_dir, pattern='.*'):
     # extract data
     overall_raw_measurements = {}
     for f in os.listdir(stats_dir):
-        
         exp_dir = os.path.join(stats_dir, f)
         if not os.path.isdir(exp_dir):
             continue
@@ -243,7 +498,19 @@ def parse_multiple_exp_stats(stats_dir, pattern='.*'):
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "package-1", "overall_package_1.csv")
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "dram-0", "overall_dram_0.csv")
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "dram-1", "overall_dram_1.csv")
-
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C0-res", "overall_c0_res.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C1-res", "overall_c1_res.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C1E-res", "overall_c1e_res.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C6-res", "overall_c6_res.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C0-tr", "overall_c0_tr.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C1-tr", "overall_c1_tr.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C1E-tr", "overall_c1e_tr.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "C6-tr", "overall_c6_tr.csv")
+    print_residency_merged(stats_dir, overall_raw_measurements, overall_statistics, "residency", "overall_residency.csv")
+    print_transition_merged(stats_dir, overall_raw_measurements, overall_statistics, "transition", "overall_transition.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "server-avg-all", "overall_server_all.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "server-avg-user", "overall_server_user.csv")
+    print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "server-avg-sys", "overall_server_sys.csv")
 
     return overall_raw_measurements
 
