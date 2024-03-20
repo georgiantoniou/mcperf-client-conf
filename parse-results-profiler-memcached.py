@@ -12,6 +12,53 @@ import re
 qps_list = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
 z=1.96 # from taming performance variability paper
 n=10
+
+def print_all_metrics(stats_dir, overall_raw_measurements, overall_statistics, filename):
+
+    header = ["exp_name","configuration","qps", "metric", "avg", "median", "stdev", "cv", "ci-min", "ci-max"]
+   
+    for exp_name in overall_raw_measurements:
+        for conf_list in overall_raw_measurements[exp_name]:
+            for id,conf in enumerate(list(conf_list.keys())):
+                for qps in qps_list:
+                    for metric in overall_raw_measurements[exp_name][id][conf][qps]:
+                        size = len(overall_raw_measurements[exp_name][id][conf][qps][metric])
+                        break
+                    break
+                break
+            break
+        break
+    
+    for i in range(0,size):
+        header.append("M" + str(i+1))
+   
+    filename = os.path.join(stats_dir, filename)
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(header)
+
+        for exp_name in overall_raw_measurements:
+            for conf_list in overall_raw_measurements[exp_name]:
+                for id,conf in enumerate(list(conf_list.keys())):
+                    for metric in overall_statistics[exp_name][id][conf][qps_list[0]]:
+                        for qps in qps_list:
+                            row = []
+                            row.append(exp_name)
+                            row.append(conf)
+                            row.append(qps)
+                            row.append(metric)
+                            row.append(overall_statistics[exp_name][id][conf][qps][metric]["avg"])
+                            row.append(overall_statistics[exp_name][id][conf][qps][metric]["median"])
+                            row.append(overall_statistics[exp_name][id][conf][qps][metric]["stdev"])
+                            row.append(overall_statistics[exp_name][id][conf][qps][metric]["cv"])
+                            row.append(overall_statistics[exp_name][id][conf][qps][metric]["ci"]["min"])
+                            row.append(overall_statistics[exp_name][id][conf][qps][metric]["ci"]["max"])
+                            for meas in overall_raw_measurements[exp_name][id][conf][qps][metric]:
+                                row.append(meas)
+                            
+                            writer.writerow(row)
+
 def print_residency_merged(stats_dir, overall_raw_measurements, overall_statistics, metric, filename):
     header = ["exp_name","configuration","qps", "metric", "C0", "C1", "C1E", "C6"]
       
@@ -146,23 +193,31 @@ def calculate_stats_single_instance(instance_stats, instance_raw_measurements):
         for metric in instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps]:
             
             if metric != "residency": 
-                instance_stats[qps][metric] = {}
-                #calculate statistics    
-                instance_stats[qps][metric]['avg'] = average(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-                instance_stats[qps][metric]['median'] = median(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-                instance_stats[qps][metric]['stdev'] = standard_deviation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-                if instance_stats[qps][metric]['median'] > 0:
-                    instance_stats[qps][metric]['cv'] = coefficient_of_variation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                if instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric]:
+                    instance_stats[qps][metric] = {}
+                    #calculate statistics    
+                    instance_stats[qps][metric]['avg'] = average(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                    instance_stats[qps][metric]['median'] = median(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                    instance_stats[qps][metric]['stdev'] = standard_deviation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                    if instance_stats[qps][metric]['median'] > 0:
+                        instance_stats[qps][metric]['cv'] = coefficient_of_variation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                    else:
+                        instance_stats[qps][metric]['cv'] = 0
+                    instance_stats[qps][metric]['ci'] = {}
+                    instance_stats[qps][metric]['ci']['min'], instance_stats[qps][metric]['ci']['max'] = confidence_interval_mean(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
                 else:
+                    instance_stats[qps][metric] = {}
+                    instance_stats[qps][metric]['avg'] = 0
+                    instance_stats[qps][metric]['median'] = 0
+                    instance_stats[qps][metric]['stdev'] = 0
                     instance_stats[qps][metric]['cv'] = 0
-                instance_stats[qps][metric]['ci'] = {}
-                instance_stats[qps][metric]['ci']['min'], instance_stats[qps][metric]['ci']['max'] = confidence_interval_mean(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
-            
+                    instance_stats[qps][metric]['ci'] = {}
+                    instance_stats[qps][metric]['ci']['min'] = 0
+                    instance_stats[qps][metric]['ci']['max'] = 0
 
 def calculate_stats_multiple_instances(exp_name,overall_raw_measurements):
 
     instances_stats = {}
-    
     for ind,instance in enumerate(overall_raw_measurements[exp_name]):
         
         instances_stats[list(instance.keys())[0]] = {}
@@ -511,6 +566,7 @@ def parse_multiple_exp_stats(stats_dir, pattern='.*'):
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "server-avg-all", "overall_server_all.csv")
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "server-avg-user", "overall_server_user.csv")
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "server-avg-sys", "overall_server_sys.csv")
+    print_all_metrics(stats_dir, overall_raw_measurements, overall_statistics, "all-metrics.csv")
 
     return overall_raw_measurements
 
