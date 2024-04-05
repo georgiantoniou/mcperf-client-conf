@@ -233,8 +233,13 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     if turbostat_monitor:
         exec_command("~/mcperf-client-conf/scripts/turbostat_residency.sh main 13 10 ganton12 temp node1")
 
+    # get client side turbostat
+    # exec_command("sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &")
+    os.system('sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &')
+
     # do the measured run
     exec_command("python3 ./profiler.py -n node1 start")
+    
     #run_socwatch(conf,results_dir_name)
     #run_socwatch_ccstates(conf,results_dir_name)
     #run_socwatch_io(conf,results_dir_name)
@@ -246,6 +251,9 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
         .format(agents_parameter(), conf.mcperf_qps, conf.mcperf_time, conf.mcperf_records, conf.mcperf_set_get_ratio, conf.mcperf_iadist, conf.mcperf_keysize, conf.mcperf_valuesize))
     exec_command("python3 ./profiler.py -n node1 stop")
 	
+    # stop turbostat measurements
+    exec_command("sudo pkill turbostat")
+
    #check if socwatch is still processing
    # active_socwatch=exec_command("/users/ganton12/mcperf-client-conf/scripts/check-socwatch-status.sh node1")
    # while (int(active_socwatch[0]) > 2):
@@ -278,13 +286,21 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
             for l in out_temp:
                 fo.write(l+'\n')
 
+    # Write turbostat statistics
+    with open("/users/ganton12/temp", "r") as file:
+        stdout = file.readlines()
+
+    turbostat_client_results_path_name = os.path.join(results_dir_path, 'turbostat_client')
+    with open(turbostat_client_results_path_name, 'w') as fo:
+        for l in stdout:
+            fo.write(l+'\n')
+
     #move socwatch statistics to extra space because space at working directory is extremely limited
     #os.system('ssh -n node1 "sudo mkdir /myextraspace/local/data/{}; sudo mv ~/{}* /myextraspace/local/data/{}"'.format(results_dir_name,results_dir_name,results_dir_name))
  
     # cleanup
     kill_remote(conf)
     kill_profiler(conf)
-
 
 def run_multiple_experiments_with_varying_freq(root_results_dir, batch_name, system_conf, batch_conf, iter):
     configure_memcached_node(system_conf)
@@ -311,7 +327,7 @@ def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_co
     #request_qps = [4000, 10000, 20000, 50000, 100000, 200000, 300000, 400000, 500000]
     #request_qps = [500000, 400000, 300000, 200000, 100000, 50000, 20000, 10000, 4000]
     root_results_dir = os.path.join(root_results_dir, batch_name)
-    ## set_uncore_freq(system_conf, 2000)
+    set_uncore_freq(system_conf, 2000)
     #for freq in [2100]:
     #    set_core_freq(system_conf, freq)
     for qps in request_qps:
@@ -373,7 +389,7 @@ def main(argv):
     if len(argv) < 1:
         raise Exception("Experiment name is missing")
     batch_name = argv[0]
-    for iter in range(5, 10):
+    for iter in range(0, 5):
         for system_conf in system_confs:
             run_multiple_experiments('/users/ganton12/data', batch_name, system_conf, batch_conf, iter)
 
