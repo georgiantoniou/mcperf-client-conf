@@ -175,7 +175,7 @@ def confidence_interval_mean (metric_measurements):
     return min_val, max_val
 
 def coefficient_of_variation(metric_measurements):
-    return statistics.stdev(metric_measurements) / statistics.median(metric_measurements)
+    return statistics.stdev(metric_measurements) / statistics.mean(metric_measurements)
 
 def standard_deviation(metric_measurements):
     return statistics.stdev(metric_measurements)
@@ -186,6 +186,9 @@ def median(metric_measurements):
 def average(metric_measurements):
     return statistics.mean(metric_measurements)
 
+def average_ignore_zeros(metric_measurements):
+    return statistics.mean([i for i in metric_measurements if i!=0] or [0])
+
 def calculate_stats_single_instance(instance_stats, instance_raw_measurements):
 
     for qps in instance_raw_measurements[list(instance_raw_measurements.keys())[0]]:
@@ -195,8 +198,12 @@ def calculate_stats_single_instance(instance_stats, instance_raw_measurements):
             if metric != "residency": 
                 if instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric]:
                     instance_stats[qps][metric] = {}
-                    #calculate statistics    
-                    instance_stats[qps][metric]['avg'] = average(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                    #calculate statistics   
+                    print(metric) 
+                    if "package-0" in metric or "package-1" in metric or "dram-0" in metric or "dram-1" in metric:
+                        instance_stats[qps][metric]['avg'] = average_ignore_zeros(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
+                    else:
+                        instance_stats[qps][metric]['avg'] = average(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
                     instance_stats[qps][metric]['median'] = median(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
                     instance_stats[qps][metric]['stdev'] = standard_deviation(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
                     if instance_stats[qps][metric]['median'] > 0:
@@ -366,6 +373,52 @@ def calculate_cstate_stats(instances_raw_measurements, inst_name, qps):
             instances_raw_measurements[inst_name][qps][metrics[i]].append(res)
     return 
 
+def parse_client_turbostat(client_turbostat_file):
+    
+    data_dict = {}
+
+    # Open the turbostat output file for reading
+    with open(client_turbostat_file, 'r') as file:
+
+        # Read all lines from the file
+        lines = file.readlines()
+
+    # Extract header and data rows
+    header = lines[0].split()
+    data_rows = [line.split() for line in lines[1:]]
+    
+    # Iterate over data rows
+    for row in data_rows:
+        
+        if "Package" in row or not row:
+            continue
+
+        # Extract core and data values
+        if row[2] == "-":
+            core = -1
+        else:
+            core = int(row[2])
+        
+        data_values = {header[i]: float(row[i]) for i in range(3, len(row))}
+
+        # Check if the core already exists in the dictionary
+        #print(str(j) + " " + str(core))
+        if core in data_dict:
+            # Append new values to the existing dictionary
+            existing_values = data_dict[core]
+            for key, value in data_values.items():
+                existing_values[key].append(value)
+        else:
+            # Create a new entry with the current values
+            data_dict[core] = {key: [value] for key, value in data_values.items()}
+
+    # Calculate averages for each metric and core
+    averages_dict = {}
+    for core, values in data_dict.items():
+        averages_dict[core] = {key: statistics.mean(value) for key, value in values.items()}
+    
+    return averages_dict
+    
 def parse_server_time(server_stats_dir, qps):
 
     warmup_file = os.path.join(server_stats_dir, 'memcachedstatswarmup')
@@ -468,6 +521,192 @@ def parse_single_instance_stats(stats,stats_dir, qps):
         stats['server-avg-user'] = []
         stats['server-avg-sys'] = []
     
+    if "client-pkg-0" not in stats:
+        stats['client-pkg-0'] = []
+        stats['client-pkg-1'] = []
+        stats['client-C1-res-hw-all'] = []
+        stats['client-C6-res-hw-all'] = []
+        stats['client-C0-res-hw-all'] = []
+        stats['client-C1-res-sw-all'] = []
+        stats['client-C1E-res-sw-all'] = []
+        stats['client-C6-res-sw-all'] = []
+        stats['client-C0-res-sw-all'] = []
+        stats['client-C1-res-hw-s0'] = []
+        stats['client-C6-res-hw-s0'] = []
+        stats['client-C0-res-hw-s0'] = []
+        stats['client-C1-res-sw-s0'] = []
+        stats['client-C1E-res-sw-s0'] = []
+        stats['client-C6-res-sw-s0'] = []
+        stats['client-C0-res-sw-s0'] = []
+        stats['client-C1-res-hw-s1'] = []
+        stats['client-C6-res-hw-s1'] = []
+        stats['client-C0-res-hw-s1'] = []
+        stats['client-C1-res-sw-s1'] = []
+        stats['client-C1E-res-sw-s1'] = []
+        stats['client-C6-res-sw-s1'] = []
+        stats['client-C0-res-sw-s1'] = []
+        stats['client-C1-tr-all'] = []
+        stats['client-C1E-tr-all'] = []
+        stats['client-C6-tr-all'] = []
+        stats['client-C1-tr-s0'] = []
+        stats['client-C1E-tr-s0'] = []
+        stats['client-C6-tr-s0'] = []
+        stats['client-C1-tr-s1'] = []
+        stats['client-C1E-tr-s1'] = []
+        stats['client-C6-tr-s1'] = []
+
+    # Check if client turbostat in files parse turbostat as well with the rest
+    client_turbostat_file = os.path.join(stats_dir, 'turbostat_client')
+    if os.path.exists(client_turbostat_file):
+        temp = parse_client_turbostat(client_turbostat_file)
+        if "PkgWatt" in temp[0]:
+            stats['client-pkg-0'].append(temp[0]['PkgWatt'])
+        else:
+            stats['client-pkg-0'].append(0)
+
+        if "PkgWatt" in temp[10]:
+            stats['client-pkg-1'].append(temp[10]['PkgWatt'])
+        else:
+            stats['client-pkg-1'].append(0)
+
+        if r"CPU%c1" in temp[-1]:
+            stats['client-C1-res-hw-all'].append(temp[-1][r'CPU%c1'])
+        else:
+            stats['client-C1-res-hw-all'].append(0)
+
+        if r"CPU%c6" in temp[-1]:
+            stats['client-C6-res-hw-all'].append(temp[-1][r'CPU%c6'])
+        else:
+            stats['client-C6-res-hw-all'].append(0)
+        
+        stats['client-C0-res-hw-all'].append(100-stats['client-C6-res-hw-all'][-1] - stats['client-C1-res-hw-all'][-1])
+
+        if "C1%" in temp[-1]:
+            stats['client-C1-res-sw-all'].append(temp[-1]['C1%'])
+        else:
+            stats['client-C1-res-sw-all'].append(0)
+        
+        if "C1E%" in temp[-1]:
+            stats['client-C1E-res-sw-all'].append(temp[-1]['C1E%'])
+        else:
+            stats['client-C1E-res-sw-all'].append(0)
+
+        if "C6%" in temp[-1]:
+            stats['client-C6-res-sw-all'].append(temp[-1]['C6%'])
+        else:
+            stats['client-C6-res-sw-all'].append(0)
+        
+        stats['client-C0-res-sw-all'].append(100-stats['client-C6-res-sw-all'][-1] - stats['client-C1-res-sw-all'][-1] - stats['client-C1E-res-sw-all'][-1])
+
+        # Socket 0 Residency
+        if r"CPU%c1" in temp[0]:
+            stats['client-C1-res-hw-s0'].append(temp[0][r'CPU%c1'])
+        else:
+            stats['client-C1-res-hw-s0'].append(0)
+
+        if r"CPU%c6" in temp[0]:
+            stats['client-C6-res-hw-s0'].append(temp[0][r'CPU%c6'])
+        else:
+            stats['client-C6-res-hw-s0'].append(0)
+        
+        stats['client-C0-res-hw-s0'].append(100-stats['client-C6-res-hw-s0'][-1] - stats['client-C1-res-hw-s0'][-1])
+
+        if "C1%" in temp[0]:
+            stats['client-C1-res-sw-s0'].append(temp[0]['C1%'])
+        else:
+            stats['client-C1-res-sw-s0'].append(0)
+        
+        if "C1E%" in temp[0]:
+            stats['client-C1E-res-sw-s0'].append(temp[0]['C1E%'])
+        else:
+            stats['client-C1E-res-sw-s0'].append(0)
+
+        if "C6%" in temp[0]:
+            stats['client-C6-res-sw-s0'].append(temp[0]['C6%'])
+        else:
+            stats['client-C6-res-sw-s0'].append(0)
+        
+        stats['client-C0-res-sw-s0'].append(100-stats['client-C6-res-sw-s0'][-1] - stats['client-C1-res-sw-s0'][-1] - stats['client-C1E-res-sw-s0'][-1])
+
+        # Socket 1 Residency
+        if r"CPU%c1" in temp[10]:
+            stats['client-C1-res-hw-s1'].append(temp[10][r'CPU%c1'])
+        else:
+            stats['client-C1-res-hw-s1'].append(0)
+
+        if r"CPU%c6" in temp[10]:
+            stats['client-C6-res-hw-s1'].append(temp[10][r'CPU%c6'])
+        else:
+            stats['client-C6-res-hw-s1'].append(0)
+        
+        stats['client-C0-res-hw-s1'].append(100-stats['client-C6-res-hw-s1'][-1] - stats['client-C1-res-hw-s1'][-1])
+
+        if "C1%" in temp[10]:
+            stats['client-C1-res-sw-s1'].append(temp[10]['C1%'])
+        else:
+            stats['client-C1-res-sw-s1'].append(0)
+        
+        if "C1E%" in temp[10]:
+            stats['client-C1E-res-sw-s1'].append(temp[10]['C1E%'])
+        else:
+            stats['client-C1E-res-sw-s1'].append(0)
+
+        if "C6%" in temp[10]:
+            stats['client-C6-res-sw-s1'].append(temp[10]['C6%'])
+        else:
+            stats['client-C6-res-sw-s1'].append(0)
+        
+        stats['client-C0-res-sw-s1'].append(100-stats['client-C6-res-sw-s1'][-1] - stats['client-C1-res-sw-s1'][-1] - stats['client-C1E-res-sw-s1'][-1])
+
+        # Transitions
+        if "C1" in temp[-1]:
+            stats['client-C1-tr-all'].append(temp[-1]['C1'])
+        else:
+            stats['client-C1-tr-all'].append(0)
+        
+        if "C1E" in temp[-1]:
+            stats['client-C1E-tr-all'].append(temp[-1]['C1E'])
+        else:
+            stats['client-C1E-tr-all'].append(0)
+
+        if "C6" in temp[-1]:
+            stats['client-C6-tr-all'].append(temp[-1]['C6'])
+        else:
+            stats['client-C6-tr-all'].append(0)
+
+        # Socket 0 Transitions
+        if "C1" in temp[0]:
+            stats['client-C1-tr-s0'].append(temp[0]['C1'])
+        else:
+            stats['client-C1-tr-s0'].append(0)
+        
+        if "C1E" in temp[0]:
+            stats['client-C1E-tr-s0'].append(temp[0]['C1E'])
+        else:
+            stats['client-C1E-tr-s0'].append(0)
+
+        if "C6" in temp[0]:
+            stats['client-C6-tr-s0'].append(temp[0]['C6'])
+        else:
+            stats['client-C6-tr-s0'].append(0)
+        
+        # Socket 1 Residency
+        if "C1" in temp[10]:
+            stats['client-C1-tr-s1'].append(temp[10]['C1'])
+        else:
+            stats['client-C1-tr-s1'].append(0)
+        
+        if "C1E" in temp[10]:
+            stats['client-C1E-tr-s1'].append(temp[10]['C1E'])
+        else:
+            stats['client-C1E-tr-s1'].append(0)
+
+        if "C6" in temp[10]:
+            stats['client-C6-tr-s1'].append(temp[10]['C6'])
+        else:
+            stats['client-C6-tr-s1'].append(0)
+        
+
     client_stats_file = os.path.join(stats_dir, 'mcperf')
     stats['throughput'].append(parse_client_throughput(client_stats_file))
     
@@ -490,6 +729,7 @@ def parse_single_instance_stats(stats,stats_dir, qps):
     stats['server-avg-all'].append(all_time)
     stats['server-avg-user'].append(user_time)
     stats['server-avg-sys'].append(sys_time)
+   
 
 def parse_multiple_instances_stats(exp_dir, pattern='.*'):
     
