@@ -151,28 +151,13 @@ def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics,
                         writer.writerow(row)
 
 def confidence_interval_mean (metric_measurements):
-    # temp_list  = metric_measurements
-    # temp_list.sort()
-    sum_m_n = 0
-    sum_s_n = 0
-
-    #calculate m_n first
-
-    for x in metric_measurements:
-        sum_m_n = sum_m_n + x
-
-    m_n = 1/n * (sum_m_n)
-
-    for x in metric_measurements:
-        sum_s_n = sum_s_n + ((x-m_n) * (x-m_n))
-    
-    sum_s_n = 1/n * (sum_s_n)
-    s_n = math.sqrt(sum_s_n)
-
-    min_val = m_n - z * (s_n/math.sqrt(n))
-    max_val = m_n + z * (s_n/math.sqrt(n))
-
-    return min_val, max_val
+    temp_list  = metric_measurements
+    temp_list.sort()
+   
+    min_i = math.floor((n-z*math.sqrt(n)) / 2)
+    max_i = math.ceil(1 + (n+z*math.sqrt(n)) / 2) 
+   
+    return temp_list[min_i-1], temp_list[max_i-1]
 
 def coefficient_of_variation(metric_measurements):
     return statistics.stdev(metric_measurements) / statistics.mean(metric_measurements)
