@@ -72,6 +72,8 @@ def print_residency_merged(stats_dir, overall_raw_measurements, overall_statisti
             for conf_list in overall_raw_measurements[exp_name]:
                 for id,conf in enumerate(list(conf_list.keys())):
                     for qps in qps_list:
+                        if "C0-res" not in overall_statistics[exp_name][id][conf][qps]:
+                            return
                         row = []
                         row.append(exp_name)
                         row.append(conf)
@@ -97,6 +99,8 @@ def print_transition_merged(stats_dir, overall_raw_measurements, overall_statist
             for conf_list in overall_raw_measurements[exp_name]:
                 for id,conf in enumerate(list(conf_list.keys())):
                     for qps in qps_list:
+                        if "C0-tr" not in overall_statistics[exp_name][id][conf][qps]:
+                            return
                         row = []
                         row.append(exp_name)
                         row.append(conf)
@@ -116,6 +120,8 @@ def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics,
         for conf_list in overall_raw_measurements[exp_name]:
             for id,conf in enumerate(list(conf_list.keys())):
                 for qps in qps_list:
+                    if not "C0-res" in overall_raw_measurements[exp_name][id][conf][qps]:
+                        return
                     size = len(overall_raw_measurements[exp_name][id][conf][qps][metric])
                 break
             break
@@ -183,7 +189,6 @@ def calculate_stats_single_instance(instance_stats, instance_raw_measurements):
                 if instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric]:
                     instance_stats[qps][metric] = {}
                     #calculate statistics   
-                    print(metric) 
                     if "package-0" in metric or "package-1" in metric or "dram-0" in metric or "dram-1" in metric:
                         instance_stats[qps][metric]['avg'] = average_ignore_zeros(instance_raw_measurements[list(instance_raw_measurements.keys())[0]][qps][metric])
                     else:
@@ -312,6 +317,9 @@ def avg_state_time_perc(stats, cpu_id_list):
     return avg_state_time_perc
 
 def calculate_cstate_stats(instances_raw_measurements, inst_name, qps):
+    # Check if residency exiists
+    if not instances_raw_measurements[inst_name][qps]['residency'][0]:
+        return
     # determine used C-states
     state_names = ['C0']
     check_state_names = ['C1', 'C1E', 'C6']
@@ -330,6 +338,8 @@ def calculate_cstate_stats(instances_raw_measurements, inst_name, qps):
     metrics=['C0-res','C1-res','C1E-res','C6-res']
     
     for time_perc in time_perc_list:
+        while len(time_perc) < len(metrics):
+            time_perc.append(0)
         for i, res in enumerate(time_perc):
             instances_raw_measurements[inst_name][qps][metrics[i]].append(res)   
     
@@ -352,6 +362,8 @@ def calculate_cstate_stats(instances_raw_measurements, inst_name, qps):
     metrics=['C0-tr','C1-tr','C1E-tr','C6-tr']
     
     for usage_el in usage_list:
+        while len(usage_el) < len(metrics):
+            usage_el.append(0)
         for i, res in enumerate(usage_el):
             instances_raw_measurements[inst_name][qps][metrics[i]].append(res)
     return 
