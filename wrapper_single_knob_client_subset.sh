@@ -13,31 +13,32 @@
 # INTEL_PSTATE_OFF_FREQ_GOVERNOR_PERFORMANCE: cstates-on/intel-pstate-off/tickless-on/smt-on/turbo-on/uncore-dynamic/core-performance/
 
 cd ~/mcperf-client-conf/client-conf-scripts/
+ssh ganton12@node0 "mkdir ~/data/memcached-client-single-knob-variability-sleep-40"
 
-#### Exp3: Set C1 client configuration: #### 
+# #### Exp3: Set C1 client configuration: #### 
 
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 1101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob/C1
+# ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 1101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob-variability-sleep-40/C1
 
-# Run experiment
+# # Run experiment
 
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob/C1 >> ~/nohup.out 2>&1 &"
+# ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob-variability-sleep-40/C1 >> ~/nohup.out 2>&1 &"
 
-sleep 105m
+# sleep 105m
 
-while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
-do
+# while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
+# do
 
-    sleep 5m
+#     sleep 5m
 
-done
+# done
 
 #### Exp4: Set C0 client configuration: #### 
 
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 0101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob/C0
+~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 0101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob-variability-sleep-40/C0
 
 # Run experiment
 
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob/C0 >> ~/nohup.out 2>&1 &"
+ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob-variability-sleep-40/C0 >> ~/nohup.out 2>&1 &"
 
 sleep 105m
 
@@ -48,54 +49,54 @@ do
 
 done
 
-#### Exp5: Set INTEL_PSTATE_OFF client configuration: #### 
+# #### Exp5: Set INTEL_PSTATE_OFF client configuration: #### 
 
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3001301 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob/INTEL_PSTATE_OFF
+# ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3001301 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob-variability-sleep-40/INTEL_PSTATE_OFF
 
-# Run experiment
+# # Run experiment
 
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob/INTEL_PSTATE_OFF >> ~/nohup.out 2>&1 &"
+# ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob-variability-sleep-40/INTEL_PSTATE_OFF >> ~/nohup.out 2>&1 &"
 
-sleep 105m
+# sleep 105m
 
-while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
-do
+# while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
+# do
 
-    sleep 5m
+#     sleep 5m
 
-done
+# done
 
 
-#### Exp10: Set INTEL_PSTATE_OFF_FREQ_GOVERNOR_USERSPACE client configuration: #### 
+# #### Exp10: Set INTEL_PSTATE_OFF_FREQ_GOVERNOR_USERSPACE client configuration: #### 
 
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3001201 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob/INTEL_PSTATE_OFF_FREQ_GOVERNOR_USERSPACE
+# ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3001201 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob-variability-sleep-40/INTEL_PSTATE_OFF_FREQ_GOVERNOR_USERSPACE
 
-# Run experiment
+# # Run experiment
 
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob/INTEL_PSTATE_OFF_FREQ_GOVERNOR_USERSPACE >> ~/nohup.out 2>&1 &"
+# ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob-variability-sleep-40/INTEL_PSTATE_OFF_FREQ_GOVERNOR_USERSPACE >> ~/nohup.out 2>&1 &"
 
-sleep 105m
+# sleep 105m
 
-while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
-do
+# while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
+# do
 
-    sleep 5m
+#     sleep 5m
 
-done
+# done
 
-#### Exp11: Set INTEL_PSTATE_OFF_FREQ_GOVERNOR_PERFORMANCE client configuration: #### 
+# #### Exp11: Set INTEL_PSTATE_OFF_FREQ_GOVERNOR_PERFORMANCE client configuration: #### 
 
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3001101 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob/INTEL_PSTATE_OFF_FREQ_GOVERNOR_PERFORMANCE
+# ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3001101 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-client-single-knob-variability-sleep-40/INTEL_PSTATE_OFF_FREQ_GOVERNOR_PERFORMANCE
 
-# Run experiment
+# # Run experiment
 
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob/INTEL_PSTATE_OFF_FREQ_GOVERNOR_PERFORMANCE >> ~/nohup.out 2>&1 &"
+# ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-client-single-knob-variability-sleep-40/INTEL_PSTATE_OFF_FREQ_GOVERNOR_PERFORMANCE >> ~/nohup.out 2>&1 &"
 
-sleep 105m
+# sleep 105m
 
-while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
-do
+# while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
+# do
 
-    sleep 5m
+#     sleep 5m
 
-done
+# done

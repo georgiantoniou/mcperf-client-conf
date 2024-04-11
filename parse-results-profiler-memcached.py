@@ -11,7 +11,7 @@ import re
 
 qps_list = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
 z=1.96 # from taming performance variability paper
-n=10
+n=4
 
 def print_all_metrics(stats_dir, overall_raw_measurements, overall_statistics, filename):
 
@@ -151,13 +151,12 @@ def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics,
                         writer.writerow(row)
 
 def confidence_interval_mean (metric_measurements):
-    temp_list  = metric_measurements
+    temp_list  = metric_measurements.copy()
     temp_list.sort()
-   
+     
     min_i = math.floor((n-z*math.sqrt(n)) / 2)
     max_i = math.ceil(1 + (n+z*math.sqrt(n)) / 2) 
-   
-    return temp_list[min_i-1], temp_list[max_i-1]
+    return temp_list[min_i+1-1], temp_list[max_i-1]
 
 def coefficient_of_variation(metric_measurements):
     return statistics.stdev(metric_measurements) / statistics.mean(metric_measurements)
@@ -211,7 +210,6 @@ def calculate_stats_multiple_instances(exp_name,overall_raw_measurements):
 
     instances_stats = {}
     for ind,instance in enumerate(overall_raw_measurements[exp_name]):
-        
         instances_stats[list(instance.keys())[0]] = {}
         calculate_stats_single_instance(instances_stats[list(instance.keys())[0]], overall_raw_measurements[exp_name][ind])
     
