@@ -43,6 +43,13 @@ install_dep () {
   sudo apt update
   sudo apt install ansible -y
   ansible-playbook -i hosts ansible/install_dep.yml
+  sudo apt install python3-pip
+  pip3 install --upgrade setuptools
+  sudo apt-get install python3.6-dev libmysqlclient-dev libpcap-dev libpq-dev
+  pip3 install --upgrade pip3
+  pip3 install --upgrade pip
+  pip3 install paramiko
+  pip3 install scp
 }
 
 build () {

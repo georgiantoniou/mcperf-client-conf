@@ -10,8 +10,8 @@ import os
 import configparser
 import socket
 import common 
-#from paramiko import SSHClient
-#from scp import SCPClient
+from paramiko import SSHClient
+from scp import SCPClient
 
 
 
@@ -235,8 +235,18 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
 
     # get client side turbostat
     # exec_command("sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &")
-    os.system('sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &')
+    
+    # kill turbostat from previous experiments
+    os.system("sudo pkill turbostat")
+    for n in agents_list():
+        print(n)
+        os.system('ssh -n {} "sudo pkill turbostat"'.format(n))
 
+    time.sleep(5)
+    os.system('sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &')
+    for n in agents_list():
+        os.system('ssh -n {} "sudo turbostat --interval 10 --quiet --out /users/ganton12/temp" &'.format(n))
+    
     # do the measured run
     exec_command("python3 ./profiler.py -n node1 start")
     
@@ -253,7 +263,9 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
 	
     # stop turbostat measurements
     exec_command("sudo pkill turbostat")
-
+    for n in agents_list():
+        os.system('ssh -n {} "sudo pkill turbostat"'.format(n))
+    
    #check if socwatch is still processing
    # active_socwatch=exec_command("/users/ganton12/mcperf-client-conf/scripts/check-socwatch-status.sh node1")
    # while (int(active_socwatch[0]) > 2):
@@ -295,6 +307,17 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
         for l in stdout:
             fo.write(l+'\n')
 
+    # write turbostat statistics for agents
+    for n in agents_list():
+        turbostat_client_results_path_name = os.path.join(results_dir_path, 'turbostat_client_{}'.format(n))
+        ssh = SSHClient()
+        ssh.load_system_host_keys()
+        ssh.connect(str(n))
+        # Create an SCP client
+        scp = ssh.open_sftp()
+        scp.get('/users/ganton12/temp',turbostat_client_results_path_name) # Copy my_file.txt to the server
+        scp.close()
+        ssh.close()
     #move socwatch statistics to extra space because space at working directory is extremely limited
     #os.system('ssh -n node1 "sudo mkdir /myextraspace/local/data/{}; sudo mv ~/{}* /myextraspace/local/data/{}"'.format(results_dir_name,results_dir_name,results_dir_name))
  
@@ -327,7 +350,7 @@ def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_co
     #request_qps = [4000, 10000, 20000, 50000, 100000, 200000, 300000, 400000, 500000]
     #request_qps = [500000, 400000, 300000, 200000, 100000, 50000, 20000, 10000, 4000]
     root_results_dir = os.path.join(root_results_dir, batch_name)
-    set_uncore_freq(system_conf, 2000)
+    set_uncore_freq(system_conf, 3000)
     #for freq in [2100]:
     #    set_core_freq(system_conf, freq)
     for qps in request_qps:
