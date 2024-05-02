@@ -231,21 +231,16 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
 
     ##Start Turbostat Measurements
     if turbostat_monitor:
-        exec_command("~/mcperf-client-conf/scripts/turbostat_residency.sh main 13 10 ganton12 temp node1")
+        # kill turbostat from previous experiments
+        os.system("sudo pkill turbostat")
+        for n in agents_list():
+            print(n)
+            os.system('ssh -n {} "sudo pkill turbostat"'.format(n))
 
-    # get client side turbostat
-    # exec_command("sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &")
-    
-    # kill turbostat from previous experiments
-    os.system("sudo pkill turbostat")
-    for n in agents_list():
-        print(n)
-        os.system('ssh -n {} "sudo pkill turbostat"'.format(n))
-
-    time.sleep(5)
-    os.system('sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &')
-    for n in agents_list():
-        os.system('ssh -n {} "sudo turbostat --interval 10 --quiet --out /users/ganton12/temp" &'.format(n))
+        time.sleep(5)
+        os.system('sudo turbostat --interval 10 --quiet --out /users/ganton12/temp &')
+        for n in agents_list():
+            os.system('ssh -n {} "sudo turbostat --interval 10 --quiet --out /users/ganton12/temp" &'.format(n))
     
     # do the measured run
     exec_command("python3 ./profiler.py -n node1 start")
@@ -261,10 +256,11 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
         .format(agents_parameter(), conf.mcperf_qps, conf.mcperf_time, conf.mcperf_records, conf.mcperf_set_get_ratio, conf.mcperf_iadist, conf.mcperf_keysize, conf.mcperf_valuesize))
     exec_command("python3 ./profiler.py -n node1 stop")
 	
-    # stop turbostat measurements
-    exec_command("sudo pkill turbostat")
-    for n in agents_list():
-        os.system('ssh -n {} "sudo pkill turbostat"'.format(n))
+    if turbostat_monitor:
+        # stop turbostat measurements
+        exec_command("sudo pkill turbostat")
+        for n in agents_list():
+            os.system('ssh -n {} "sudo pkill turbostat"'.format(n))
     
    #check if socwatch is still processing
    # active_socwatch=exec_command("/users/ganton12/mcperf-client-conf/scripts/check-socwatch-status.sh node1")
@@ -291,33 +287,26 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     memcached_stats_file.close()
     
     if turbostat_monitor:
-        #wait turbostat to finish gathering data
-        time.sleep(10)
-        out_temp=exec_command("~/mcperf-client-conf/scripts/turbostat_residency.sh report_measurements temp ganton12 node1 &> {}".format(turbostat_results_dir_path))
-        with open(turbostat_results_dir_path, 'w') as fo:
-            for l in out_temp:
+        # Write turbostat statistics
+        with open("/users/ganton12/temp", "r") as file:
+            stdout = file.readlines()
+
+        turbostat_client_results_path_name = os.path.join(results_dir_path, 'turbostat_client')
+        with open(turbostat_client_results_path_name, 'w') as fo:
+            for l in stdout:
                 fo.write(l+'\n')
 
-    # Write turbostat statistics
-    with open("/users/ganton12/temp", "r") as file:
-        stdout = file.readlines()
-
-    turbostat_client_results_path_name = os.path.join(results_dir_path, 'turbostat_client')
-    with open(turbostat_client_results_path_name, 'w') as fo:
-        for l in stdout:
-            fo.write(l+'\n')
-
-    # write turbostat statistics for agents
-    for n in agents_list():
-        turbostat_client_results_path_name = os.path.join(results_dir_path, 'turbostat_client_{}'.format(n))
-        ssh = SSHClient()
-        ssh.load_system_host_keys()
-        ssh.connect(str(n))
-        # Create an SCP client
-        scp = ssh.open_sftp()
-        scp.get('/users/ganton12/temp',turbostat_client_results_path_name) # Copy my_file.txt to the server
-        scp.close()
-        ssh.close()
+        # write turbostat statistics for agents
+        for n in agents_list():
+            turbostat_client_results_path_name = os.path.join(results_dir_path, 'turbostat_client_{}'.format(n))
+            ssh = SSHClient()
+            ssh.load_system_host_keys()
+            ssh.connect(str(n))
+            # Create an SCP client
+            scp = ssh.open_sftp()
+            scp.get('/users/ganton12/temp',turbostat_client_results_path_name) # Copy my_file.txt to the server
+            scp.close()
+            ssh.close()
     #move socwatch statistics to extra space because space at working directory is extremely limited
     #os.system('ssh -n node1 "sudo mkdir /myextraspace/local/data/{}; sudo mv ~/{}* /myextraspace/local/data/{}"'.format(results_dir_name,results_dir_name,results_dir_name))
  
