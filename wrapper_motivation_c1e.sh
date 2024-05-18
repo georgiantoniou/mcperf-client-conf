@@ -12,7 +12,7 @@
 # C0-FG_PE-TICKS_ON-UNC_FIXED-S-C6_OFF: c0-on/intel-pstate-off/tickless-off/smt-on/turbo-on/uncore-fixed/core-performance/
 
 # Create Result Dir
-# ssh ganton12@node0 "mkdir ~/data/memcached-motivation-c1e"
+ssh ganton12@node0 "mkdir ~/data/memcached-motivation-c1e"
 cd ~/mcperf-client-conf/client-conf-scripts/
 
 # #### Exp1: Set Server Side C1E ON client side Default: ####
@@ -55,7 +55,7 @@ cd ~/mcperf-client-conf/client-conf-scripts/
 
 # done
 
-# #### Exp3: Set Server Side C1E ON client side C0-FG_PE-TICKS_ON-UNC_FIXED: ####
+#### Exp3: Set Server Side C1E ON client side C0-FG_PE-TICKS_ON-UNC_FIXED: ####
 
 # ## Server C1E ON ##
 # ssh ganton12@node1 "echo "0" |sudo tee /sys/devices/system/cpu/cpu*/cpuidle/state2/disable"
@@ -75,10 +75,10 @@ cd ~/mcperf-client-conf/client-conf-scripts/
 
 # done
 
-#### Exp4: Set Server Side C1E OFF client side C0-FG_PE-TICKS_ON-UNC_FIXED: ####
+### Exp4: Set Server Side C1E OFF client side C0-FG_PE-TICKS_ON-UNC_FIXED: ####
 
-## Server C1E OFF ##
-# ssh ganton12@node1 "echo "1" |sudo tee /sys/devices/system/cpu/cpu*/cpuidle/state2/disable"
+# Server C1E OFF ##
+ssh ganton12@node1 "echo "1" |sudo tee /sys/devices/system/cpu/cpu*/cpuidle/state2/disable"
 
 ## Client Side C0-FG_PE-TICKS_ON-UNC_FIXED ##
 ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 0001111 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-motivation-c1e/C0-FG_PE-TICKS_ON-UNC_FIXED-S-C1E_OFF

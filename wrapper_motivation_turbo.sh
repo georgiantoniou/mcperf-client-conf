@@ -15,65 +15,65 @@
 ssh ganton12@node0 "mkdir ~/data/memcached-motivation-turbo"
 cd ~/mcperf-client-conf/client-conf-scripts/
 
-#### Exp1: Set Server Side Turbo ON client side Default: ####
+# #### Exp1: Set Server Side Turbo ON client side Default: ####
 
-## Server TURBO ON ##
-ssh ganton12@node1 "~/mcperf-client-conf/turbo-boost.sh enable"
+# ## Server TURBO ON ##
+# ssh ganton12@node1 "~/mcperf-client-conf/turbo-boost.sh enable"
 
-## Client Side DEFAULT ##
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-motivation-turbo/DEFAULT-S-TURBO_ON
+# ## Client Side DEFAULT ##
+# ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-motivation-turbo/DEFAULT-S-TURBO_ON
 
-## Run experiment
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-motivation-turbo/DEFAULT-S-TURBO_ON >> ~/nohup.out 2>&1 &"
+# ## Run experiment
+# ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-motivation-turbo/DEFAULT-S-TURBO_ON >> ~/nohup.out 2>&1 &"
 
-sleep 105m
+# sleep 105m
 
-while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
-do
+# while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
+# do
 
-    sleep 5m
+#     sleep 5m
 
-done
+# done
 
 #### Exp2: Set Server Side TURBO OFF client side Default: ####
 
-## Server TURBO OFF ##
-ssh ganton12@node1 "~/mcperf-client-conf/turbo-boost.sh disable"
+# ## Server TURBO OFF ##
+# ssh ganton12@node1 "~/mcperf-client-conf/turbo-boost.sh disable"
 
-## Client Side DEFAULT ##
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-motivation-turbo/DEFAULT-S-TURBO_OFF
+# ## Client Side DEFAULT ##
+# ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 3101001 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-motivation-turbo/DEFAULT-S-TURBO_OFF
 
-## Run experiment
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-motivation-turbo/DEFAULT-S-TURBO_OFF >> ~/nohup.out 2>&1 &"
+# ## Run experiment
+# ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-motivation-turbo/DEFAULT-S-TURBO_OFF >> ~/nohup.out 2>&1 &"
 
-sleep 105m
+# sleep 105m
 
-while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
-do
+# while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
+# do
 
-    sleep 5m
+#     sleep 5m
 
-done
+# done
 
 #### Exp3: Set Server Side TURBO ON client side C0-FG_PE-TICKS_ON-UNC_FIXED: ####
 
-## Server TURBO ON ##
-ssh ganton12@node1 "~/mcperf-client-conf/turbo-boost.sh enable"
+# ## Server TURBO ON ##
+# ssh ganton12@node1 "~/mcperf-client-conf/turbo-boost.sh enable"
 
-## Client Side C0-FG_PE-TICKS_ON-UNC_FIXED ##
-~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 0001111 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-motivation-turbo/C0-FG_PE-TICKS_ON-UNC_FIXED-S-TURBO_ON
+# ## Client Side C0-FG_PE-TICKS_ON-UNC_FIXED ##
+# ~/mcperf-client-conf/client-conf-scripts/set-client-configuration.sh main 0001111 node0,node2,node3,node4,node5 ~/mcperf-client-conf/client-conf-scripts/ node0,~/data/memcached-motivation-turbo/C0-FG_PE-TICKS_ON-UNC_FIXED-S-TURBO_ON
 
-## Run experiment
-ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-motivation-turbo/C0-FG_PE-TICKS_ON-UNC_FIXED-S-TURBO_ON >> ~/nohup.out 2>&1 &"
+# ## Run experiment
+# ssh ganton12@node0 "cd ~/mcperf-client-conf/; nohup python3 ./run_experiment.py memcached-motivation-turbo/C0-FG_PE-TICKS_ON-UNC_FIXED-S-TURBO_ON >> ~/nohup.out 2>&1 &"
 
-sleep 105m
+# sleep 105m
 
-while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
-do
+# while [[ `ssh ganton12@node0 "ps aux | grep run_experiment | wc -l"` -gt 2 ]]; 
+# do
 
-    sleep 5m
+#     sleep 5m
 
-done
+# done
 
 #### Exp4: Set Server Side TURBO OFF client side C0-FG_PE-TICKS_ON-UNC_FIXED: ####
 
