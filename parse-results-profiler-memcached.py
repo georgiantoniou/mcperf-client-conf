@@ -12,7 +12,7 @@ from itertools import combinations
 
 qps_list = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
 z=1.96 # from taming performance variability paper
-n=50
+# n=50
 
 def print_speedup_metrics(stats_dir, speedup_statistics, filename ):
     header = ["exp_name-configuration","qps", "metric", "ci-min", "ci-max"]
@@ -196,7 +196,8 @@ def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics,
 def confidence_interval_mean (metric_measurements):
     temp_list  = metric_measurements.copy()
     temp_list.sort()
-     
+    n = len(temp_list)
+    
     min_i = math.floor((n-z*math.sqrt(n)) / 2)
     max_i = math.ceil(1 + (n+z*math.sqrt(n)) / 2) 
     return temp_list[min_i-1], temp_list[max_i-1]

@@ -38,10 +38,10 @@ def perform_CONFIRM(raw_data):
             median_all = []
             for c in range(0,200):
                 temp = random.sample(value, s)
-                min,max = confidence_interval_mean(temp,s)
+                min_meas,max_meas = confidence_interval_mean(temp,s)
                 median_all.append(statistics.median(temp))
-                min_temp.append(min)
-                max_temp.append(max)
+                min_temp.append(min_meas)
+                max_temp.append(max_meas)
             median_str = str(s)
             for meas in median_all:
                 median_str = median_str + "," + str(meas)
