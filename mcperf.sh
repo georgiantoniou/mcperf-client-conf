@@ -19,6 +19,20 @@ build_memcached () {
   popd
 }
 
+build_memcached_modified () {
+  if [[ -f "memcached/memcached" ]]
+  then 
+    return
+  fi
+  git clone https://github.com/georgiantoniou/memcached-modified.git
+  mv memcached-modified/ memcached 
+  pushd memcached
+  ./autogen.sh
+  ./configure
+  make -j4
+  popd
+}
+
 build_mcperf () {
   if [[ -f "memcache-perf/mcperf" ]]
   then 
@@ -59,6 +73,20 @@ build () {
   tar -czf mcperf-client-conf.tgz mcperf-client-conf
   popd
  }	
+
+build_modified () {
+  build_memcached_modified
+  build_mcperf
+  pushd ~
+  tar -czf mcperf-client-conf.tgz mcperf-client-conf
+  popd
+ }	
+
+build_install_modified () {
+  install_dep
+  build_modified
+  ansible-playbook -v -i hosts ansible/install.yml
+} 
 
 build_install () {
   install_dep

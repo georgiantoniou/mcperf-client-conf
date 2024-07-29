@@ -5,6 +5,14 @@
 ./mcperf.sh build_install
 python3 run_experiment.py BATCH_NAME
 ```
+# Running modified version of memcached
+```
+./mcperf.sh install_dep
+./mcperf.sh build_install_modified
+python3 run_experiment.py BATCH_NAME
+```
+*******IMPORTANT*******: Change number of records to 1. This is because we expect the
+response time of an item to be the same. As a result we can change the process time using the busy_wait function. 
 
 # Analyzing data
 ```
