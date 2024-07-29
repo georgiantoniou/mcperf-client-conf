@@ -335,7 +335,8 @@ def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_co
     #exit()
     name_prefix = "turbo={}-kernelconfig={}-hyperthreading={}-".format(system_conf['turbo'], system_conf['kernelconfig'],system_conf['ht'])
     #request_qps = [10000, 50000, 100000, 200000, 300000, 400000, 500000, 1000000, 2000000]
-    request_qps = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
+    #request_qps = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
+    request_qps = [10000]
     #request_qps = [4000, 10000, 20000, 50000, 100000, 200000, 300000, 400000, 500000]
     #request_qps = [500000, 400000, 300000, 200000, 100000, 50000, 20000, 10000, 4000]
     root_results_dir = os.path.join(root_results_dir, batch_name)
@@ -388,7 +389,7 @@ def main(argv):
         'mcperf_time': 120,
         'mcperf_warmup_qps': 1000000,
         'mcperf_warmup_time': 1,
-        'mcperf_records': 1000000,
+        'mcperf_records': 1,
         'mcperf_iadist': 'fb_ia',
         'mcperf_keysize': 'fb_key',
         'mcperf_valuesize': 'fb_value',
@@ -401,7 +402,7 @@ def main(argv):
     if len(argv) < 1:
         raise Exception("Experiment name is missing")
     batch_name = argv[0]
-    for iter in range(0, 5):
+    for iter in range(0, 1):
         for system_conf in system_confs:
             run_multiple_experiments('/users/ganton12/data', batch_name, system_conf, batch_conf, iter)
 
