@@ -120,6 +120,18 @@ def run_remote(conf):
         playbook='ansible/mcperf.yml', 
         tags='run_memcached,run_agents')
 
+def run_remote_modified(conf):
+    extravars = [
+        'WORKER_THREADS={}'.format(conf.memcached_worker_threads), 
+        'MEMORY_LIMIT_MB={}'.format(conf.memcached_memory_limit_mb), 
+        'PIN_THREADS={}'.format(conf.memcached_pin_threads),
+        'MEMCACHED_DELAY={}'.format(conf.memcached_delay)]
+    run_ansible_playbook(
+        inventory='hosts', 
+        extravars=extravars, 
+        playbook='ansible/mcperf.yml', 
+        tags='run_memcached_modified,run_agents')
+
 def kill_remote(conf):
     extravars = [
         'WORKER_THREADS={}'.format(conf.memcached_worker_threads), 
@@ -179,7 +191,11 @@ def agents_parameter():
     return ' '.join(la)
 
 def run_single_experiment(root_results_dir, name_prefix, conf, idx):
-    name = name_prefix + conf.shortname()
+
+    if conf.memcached_delay < 0:
+        name = name_prefix + conf.shortname()
+    else:
+        name = name_prefix + "memcachedelay={}-".format(conf.memcached_delay) + conf.shortname()
     results_dir_name = "{}-{}".format(name, idx)
     results_dir_path = os.path.join(root_results_dir, results_dir_name)
     memcached_results_dir_path = os.path.join(results_dir_path, 'memcached')
@@ -192,7 +208,11 @@ def run_single_experiment(root_results_dir, name_prefix, conf, idx):
     kill_remote(conf)
 
     # prepare profiler, memcached, and mcperf agents
-    run_remote(conf)
+    if conf.memcached_delay < 0:
+        run_remote(conf)
+    else:
+        run_remote_modified(conf)
+
     run_profiler(conf,idx)
     
     #wait profiler objects to initialize
@@ -335,25 +355,31 @@ def run_multiple_experiments(root_results_dir, batch_name, system_conf, batch_co
     #exit()
     name_prefix = "turbo={}-kernelconfig={}-hyperthreading={}-".format(system_conf['turbo'], system_conf['kernelconfig'],system_conf['ht'])
     #request_qps = [10000, 50000, 100000, 200000, 300000, 400000, 500000, 1000000, 2000000]
-    #request_qps = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
-    request_qps = [10000]
+    request_qps = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
+    memcached_delay = [0, 1, 100, 1000, 10000]
     #request_qps = [4000, 10000, 20000, 50000, 100000, 200000, 300000, 400000, 500000]
     #request_qps = [500000, 400000, 300000, 200000, 100000, 50000, 20000, 10000, 4000]
     root_results_dir = os.path.join(root_results_dir, batch_name)
-    set_uncore_freq(system_conf, 3000)
+    set_uncore_freq(system_conf, 2000)
     #for freq in [2100]:
     #    set_core_freq(system_conf, freq)
-    for qps in request_qps:
-        instance_conf = copy.copy(batch_conf)
-        instance_conf.set('mcperf_qps', qps)
-        #same work experiment
-        #time=int(int(instance_conf.mcperf_time)*min(request_qps)/qps)
-        #instance_conf.set('mcperf_time',time)
-        temp_iter=iter
-        iters_cycle=math.ceil(batch_conf.perf_counters/4.0)+1
-        for it in range(iters_cycle*(iter),iters_cycle*(iter+1)):
-            run_single_experiment(root_results_dir, name_prefix, instance_conf, it)
-            time.sleep(20)
+    
+    if batch_conf.memcached_delay < 0:
+        memcached_delay = [0]
+    
+    for delay in memcached_delay:  
+        for qps in request_qps:
+            instance_conf = copy.copy(batch_conf)
+            instance_conf.set('mcperf_qps', qps)
+            instance_conf.set('memcached_delay', delay)
+            #same work experiment
+            #time=int(int(instance_conf.mcperf_time)*min(request_qps)/qps)
+            #instance_conf.set('mcperf_time',time)
+            temp_iter=iter
+            iters_cycle=math.ceil(batch_conf.perf_counters/4.0)+1
+            for it in range(iters_cycle*(iter),iters_cycle*(iter+1)):
+                run_single_experiment(root_results_dir, name_prefix, instance_conf, it)
+                time.sleep(20)
 
 def main(argv):
     system_confs = [
@@ -394,7 +420,9 @@ def main(argv):
         'mcperf_keysize': 'fb_key',
         'mcperf_valuesize': 'fb_value',
         'perf_counters': 0, #21
-        'mcperf_set_get_ratio': 0
+        'mcperf_set_get_ratio': 0,
+        # added for the modified version of memcached set to -1 if memcached normal is used
+        'memcached_delay': 0
     })
     
    
@@ -402,7 +430,7 @@ def main(argv):
     if len(argv) < 1:
         raise Exception("Experiment name is missing")
     batch_name = argv[0]
-    for iter in range(0, 1):
+    for iter in range(0, 5):
         for system_conf in system_confs:
             run_multiple_experiments('/users/ganton12/data', batch_name, system_conf, batch_conf, iter)
 
