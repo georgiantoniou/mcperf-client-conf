@@ -10,7 +10,8 @@ from itertools import combinations
 
 #Need to Check confidence interval theory
 
-qps_list = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
+# qps_list = [10000, 50000, 100000, 200000, 300000, 400000, 500000]
+qps_list = [5000, 10000, 15000, 20000]
 z=1.96 # from taming performance variability paper
 # n=50
 
@@ -80,21 +81,22 @@ def print_all_metrics(stats_dir, overall_raw_measurements, overall_statistics, f
                 for id,conf in enumerate(list(conf_list.keys())):
                     for metric in overall_statistics[exp_name][0][conf][qps_list[0]]:
                         for qps in qps_list:
-                            row = []
-                            row.append(exp_name)
-                            row.append(conf)
-                            row.append(qps)
-                            row.append(metric)
-                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["avg"])
-                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["median"])
-                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["stdev"])
-                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["cv"])
-                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["min"])
-                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["max"])
-                            for meas in overall_raw_measurements[exp_name][0][conf][qps][metric]:
-                                row.append(meas)
-                            
-                            writer.writerow(row)
+                            if qps in overall_statistics[exp_name][0][conf]:
+                                row = []
+                                row.append(exp_name)
+                                row.append(conf)
+                                row.append(qps)
+                                row.append(metric)
+                                row.append(overall_statistics[exp_name][0][conf][qps][metric]["avg"])
+                                row.append(overall_statistics[exp_name][0][conf][qps][metric]["median"])
+                                row.append(overall_statistics[exp_name][0][conf][qps][metric]["stdev"])
+                                row.append(overall_statistics[exp_name][0][conf][qps][metric]["cv"])
+                                row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["min"])
+                                row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["max"])
+                                for meas in overall_raw_measurements[exp_name][0][conf][qps][metric]:
+                                    row.append(meas)
+                                
+                                writer.writerow(row)
 
 def print_residency_merged(stats_dir, overall_raw_measurements, overall_statistics, metric, filename):
     header = ["exp_name","configuration","qps", "metric", "C0", "C1", "C1E", "C6"]
@@ -109,18 +111,19 @@ def print_residency_merged(stats_dir, overall_raw_measurements, overall_statisti
             for conf_list in overall_raw_measurements[exp_name]:
                 for id,conf in enumerate(list(conf_list.keys())):
                     for qps in qps_list:
-                        if "C0-res" not in overall_statistics[exp_name][0][conf][qps]:
-                            return
-                        row = []
-                        row.append(exp_name)
-                        row.append(conf)
-                        row.append(qps)
-                        row.append(metric)
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C0-res']["avg"])
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C1-res']["avg"])
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C1E-res']["avg"])
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C6-res']["avg"])
-                        writer.writerow(row)
+                        if qps in overall_statistics[exp_name][0][conf]:    
+                            if "C0-res" not in overall_statistics[exp_name][0][conf][qps]:
+                                return
+                            row = []
+                            row.append(exp_name)
+                            row.append(conf)
+                            row.append(qps)
+                            row.append(metric)
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C0-res']["avg"])
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C1-res']["avg"])
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C1E-res']["avg"])
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C6-res']["avg"])
+                            writer.writerow(row)
 
 def print_transition_merged(stats_dir, overall_raw_measurements, overall_statistics, metric, filename):
     
@@ -136,18 +139,19 @@ def print_transition_merged(stats_dir, overall_raw_measurements, overall_statist
             for conf_list in overall_raw_measurements[exp_name]:
                 for id,conf in enumerate(list(conf_list.keys())):
                     for qps in qps_list:
-                        if "C0-tr" not in overall_statistics[exp_name][0][conf][qps]:
-                            return
-                        row = []
-                        row.append(exp_name)
-                        row.append(conf)
-                        row.append(qps)
-                        row.append(metric)
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C0-tr']["avg"])
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C1-tr']["avg"])
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C1E-tr']["avg"])
-                        row.append(overall_statistics[exp_name][0][conf][qps]['C6-tr']["avg"])
-                        writer.writerow(row)
+                        if qps in overall_statistics[exp_name][0][conf]:
+                            if "C0-tr" not in overall_statistics[exp_name][0][conf][qps]:
+                                return
+                            row = []
+                            row.append(exp_name)
+                            row.append(conf)
+                            row.append(qps)
+                            row.append(metric)
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C0-tr']["avg"])
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C1-tr']["avg"])
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C1E-tr']["avg"])
+                            row.append(overall_statistics[exp_name][0][conf][qps]['C6-tr']["avg"])
+                            writer.writerow(row)
 
 def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, metric, filename):
 
@@ -160,6 +164,7 @@ def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics,
                     if not "C0-res" in overall_raw_measurements[exp_name][0][conf][qps]:
                         return
                     size = len(overall_raw_measurements[exp_name][0][conf][qps][metric])
+                    break
                 break
             break
         break
@@ -177,21 +182,22 @@ def print_single_metric(stats_dir, overall_raw_measurements, overall_statistics,
             for conf_list in overall_raw_measurements[exp_name]:
                 for id,conf in enumerate(list(conf_list.keys())):
                     for qps in qps_list:
-                        row = []
-                        row.append(exp_name)
-                        row.append(conf)
-                        row.append(qps)
-                        row.append(metric)
-                        row.append(overall_statistics[exp_name][0][conf][qps][metric]["avg"])
-                        row.append(overall_statistics[exp_name][0][conf][qps][metric]["median"])
-                        row.append(overall_statistics[exp_name][0][conf][qps][metric]["stdev"])
-                        row.append(overall_statistics[exp_name][0][conf][qps][metric]["cv"])
-                        row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["min"])
-                        row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["max"])
-                        for meas in overall_raw_measurements[exp_name][0][conf][qps][metric]:
-                            row.append(meas)
-                        
-                        writer.writerow(row)
+                        if qps in overall_statistics[exp_name][0][conf]:
+                            row = []
+                            row.append(exp_name)
+                            row.append(conf)
+                            row.append(qps)
+                            row.append(metric)
+                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["avg"])
+                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["median"])
+                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["stdev"])
+                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["cv"])
+                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["min"])
+                            row.append(overall_statistics[exp_name][0][conf][qps][metric]["ci"]["max"])
+                            for meas in overall_raw_measurements[exp_name][0][conf][qps][metric]:
+                                row.append(meas)
+                            
+                            writer.writerow(row)
 
 def confidence_interval_mean (metric_measurements):
     temp_list  = metric_measurements.copy()
@@ -255,13 +261,20 @@ def calculate_stats_single_instance(instance_stats, instance_raw_measurements, c
                     else:
                         instance_stats[qps][metric]['avg'] = average(instance_raw_measurements[conf][qps][metric])
                     instance_stats[qps][metric]['median'] = median(instance_raw_measurements[conf][qps][metric])
-                    instance_stats[qps][metric]['stdev'] = standard_deviation(instance_raw_measurements[conf][qps][metric])
-                    if instance_stats[qps][metric]['median'] > 0:
+                    if len(instance_raw_measurements[conf][qps][metric]) >=2: 
+                        instance_stats[qps][metric]['stdev'] = standard_deviation(instance_raw_measurements[conf][qps][metric])
+                    else:
+                        instance_stats[qps][metric]['stdev'] = 0 
+                    if instance_stats[qps][metric]['median'] > 0 and instance_stats[qps][metric]['stdev'] != 0:
                         instance_stats[qps][metric]['cv'] = coefficient_of_variation(instance_raw_measurements[conf][qps][metric])
                     else:
                         instance_stats[qps][metric]['cv'] = 0
                     instance_stats[qps][metric]['ci'] = {}
-                    instance_stats[qps][metric]['ci']['min'], instance_stats[qps][metric]['ci']['max'] = confidence_interval_mean(instance_raw_measurements[conf][qps][metric])
+                    if len(instance_raw_measurements[conf][qps][metric]) < 10:
+                        instance_stats[qps][metric]['ci']['min'] = 0
+                        instance_stats[qps][metric]['ci']['max'] = 0
+                    else:
+                        instance_stats[qps][metric]['ci']['min'], instance_stats[qps][metric]['ci']['max'] = confidence_interval_mean(instance_raw_measurements[conf][qps][metric])
                 else:
                     instance_stats[qps][metric] = {}
                     instance_stats[qps][metric]['avg'] = 0
@@ -573,7 +586,7 @@ def parse_client_throughput(client_stats_file):
 def parse_single_instance_stats(stats,stats_dir, qps):
     
     run = int(stats_dir.split("-")[-1])
-   
+    
     if "throughput" not in stats:
         stats['throughput'] = []
         stats['avg'] = []
@@ -777,42 +790,42 @@ def parse_single_instance_stats(stats,stats_dir, qps):
     qps_temp = parse_client_throughput(client_stats_file)
     stats['throughput'].insert(run, qps_temp)
     
-    if (float(qps) - float(qps_temp)) > 50000:
-        stats['throughput'].pop(run)
-        if stats['client-pkg-0']:
-            stats['client-pkg-0'].pop(run)
-            stats['client-pkg-1'].pop(run)
-            stats['client-C1-res-hw-all'].pop(run)
-            stats['client-C6-res-hw-all'].pop(run)
-            stats['client-C0-res-hw-all'].pop(run)
-            stats['client-C1-res-sw-all'].pop(run)
-            stats['client-C1E-res-sw-all'].pop(run)
-            stats['client-C6-res-sw-all'].pop(run)
-            stats['client-C0-res-sw-all'].pop(run)
-            stats['client-C1-res-hw-s0'].pop(run)
-            stats['client-C6-res-hw-s0'].pop(run)
-            stats['client-C0-res-hw-s0'].pop(run)
-            stats['client-C1-res-sw-s0'].pop(run)
-            stats['client-C1E-res-sw-s0'].pop(run)
-            stats['client-C6-res-sw-s0'].pop(run)
-            stats['client-C0-res-sw-s0'].pop(run)
-            stats['client-C1-res-hw-s1'].pop(run)
-            stats['client-C6-res-hw-s1'].pop(run)
-            stats['client-C0-res-hw-s1'].pop(run)
-            stats['client-C1-res-sw-s1'].pop(run)
-            stats['client-C1E-res-sw-s1'].pop(run)
-            stats['client-C6-res-sw-s1'].pop(run)
-            stats['client-C0-res-sw-s1'].pop(run)
-            stats['client-C1-tr-all'].pop(run)
-            stats['client-C1E-tr-all'].pop(run)
-            stats['client-C6-tr-all'].pop(run)
-            stats['client-C1-tr-s0'].pop(run)
-            stats['client-C1E-tr-s0'].pop(run)
-            stats['client-C6-tr-s0'].pop(run)
-            stats['client-C1-tr-s1'].pop(run)
-            stats['client-C1E-tr-s1'].pop(run)
-            stats['client-C6-tr-s1'].pop(run)
-        return
+    # if (float(qps) - float(qps_temp)) > 50000:
+    #     stats['throughput'].pop(run)
+    #     if stats['client-pkg-0']:
+    #         stats['client-pkg-0'].pop(run)
+    #         stats['client-pkg-1'].pop(run)
+    #         stats['client-C1-res-hw-all'].pop(run)
+    #         stats['client-C6-res-hw-all'].pop(run)
+    #         stats['client-C0-res-hw-all'].pop(run)
+    #         stats['client-C1-res-sw-all'].pop(run)
+    #         stats['client-C1E-res-sw-all'].pop(run)
+    #         stats['client-C6-res-sw-all'].pop(run)
+    #         stats['client-C0-res-sw-all'].pop(run)
+    #         stats['client-C1-res-hw-s0'].pop(run)
+    #         stats['client-C6-res-hw-s0'].pop(run)
+    #         stats['client-C0-res-hw-s0'].pop(run)
+    #         stats['client-C1-res-sw-s0'].pop(run)
+    #         stats['client-C1E-res-sw-s0'].pop(run)
+    #         stats['client-C6-res-sw-s0'].pop(run)
+    #         stats['client-C0-res-sw-s0'].pop(run)
+    #         stats['client-C1-res-hw-s1'].pop(run)
+    #         stats['client-C6-res-hw-s1'].pop(run)
+    #         stats['client-C0-res-hw-s1'].pop(run)
+    #         stats['client-C1-res-sw-s1'].pop(run)
+    #         stats['client-C1E-res-sw-s1'].pop(run)
+    #         stats['client-C6-res-sw-s1'].pop(run)
+    #         stats['client-C0-res-sw-s1'].pop(run)
+    #         stats['client-C1-tr-all'].pop(run)
+    #         stats['client-C1E-tr-all'].pop(run)
+    #         stats['client-C6-tr-all'].pop(run)
+    #         stats['client-C1-tr-s0'].pop(run)
+    #         stats['client-C1E-tr-s0'].pop(run)
+    #         stats['client-C6-tr-s0'].pop(run)
+    #         stats['client-C1-tr-s1'].pop(run)
+    #         stats['client-C1E-tr-s1'].pop(run)
+    #         stats['client-C6-tr-s1'].pop(run)
+    #     return
 
     client_time_stats = {}
     client_time_stats = parse_client_time(client_stats_file)
@@ -900,16 +913,16 @@ def parse_multiple_exp_stats(stats_dir, pattern='.*'):
             for conf_key,conf_val in conf.items():
                 temp_raw[str(key) + "-" + str(conf_key)] = conf_val
     
-    pairs = list(combinations(temp_raw.items(), 2))
-    if not (len(temp_raw) == 1):
-        for pair in pairs:
-        # Access the first and second items within each tuple
-            first_item = pair[0]
-            second_item = pair[1]
-            speedup_statistics.setdefault(str(first_item[0]) + "-" + str(second_item[0]), []).append(calculate_speedup_stats_multiple_instances(str(first_item[0]) + "-" + str(second_item[0]), first_item[1], second_item[1]))    
+    # pairs = list(combinations(temp_raw.items(), 2))
+    # if not (len(temp_raw) == 1):
+    #     for pair in pairs:
+    #     # Access the first and second items within each tuple
+    #         first_item = pair[0]
+    #         second_item = pair[1]
+    #         speedup_statistics.setdefault(str(first_item[0]) + "-" + str(second_item[0]), []).append(calculate_speedup_stats_multiple_instances(str(first_item[0]) + "-" + str(second_item[0]), first_item[1], second_item[1]))    
     
-    print_speedup_metrics(stats_dir, speedup_statistics, "speedup_metrics.csv" )
-    
+    # print_speedup_metrics(stats_dir, speedup_statistics, "speedup_metrics.csv" )
+    print(stats_dir)
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "throughput", "overall_throughput_time.csv")
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "avg", "overall_average_time.csv")
     print_single_metric(stats_dir, overall_raw_measurements, overall_statistics, "99th", "overall_99th_time.csv")
